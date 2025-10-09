@@ -23,7 +23,6 @@ In *Proceedings of the Genetic and Evolutionary Computation Conference (GECCO 20
 **Oksuz, M. K., Satoglu, S. I., Kayakutlu, G., & Buyukozkan, K.** (2016).
 *A Genetic Algorithm for the P-Median Facility Location Problem.*
 In *Proceedings of the International Conference on Industrial Engineering and Operations Management*, July 2016.
-Retrieved from [ResearchGate](https://www.researchgate.net/publication/305380696)
 
 **Romero Montoya, M., González Velázquez, R., Estrada Analco, M., Martínez Flores, J. L., & Bernábe Loranca, M. B.** (2019).
 *Solution Search for the Capacitated P-Median Problem using Tabu Search.*
@@ -36,5 +35,5 @@ See the [LICENSE](LICENSE) file for details.
 
 ## 👥 Author
 
-Developed and maintained by **Filipe Medeiros**.
+Developed and maintained by **Filipe de Medeiros**.
 For academic inquiries or collaborations, feel free to reach out.
