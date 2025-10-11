@@ -24,8 +24,8 @@ python3 -m scripts.1_load_instances
 
 This will:
 
-Create the `instances/` directory if it does not exist
+- Create the `instances/` directory if it does not exist
 
-Download all pmed1–pmed40 instances
+- Download all pmed1–pmed40 instances
 
-Download the pmedbest.txt file with best-known solutions
+- Download the pmedbest.txt file with best-known solutions
