@@ -16,17 +16,21 @@ Applications include:
 
 ## 📚 References
 
-**Correa, E. S., Steiner, M. T. A., Freitas, A. A., & Carnieri, C.** (2001).
-*A Genetic Algorithm for the P-Median Problem.*
+**Correa, E. S., Steiner, M. T. A., Freitas, A. A., & Carnieri, C.** (2001).  
+*A Genetic Algorithm for the P-Median Problem.*  
 In *Proceedings of the Genetic and Evolutionary Computation Conference (GECCO 2001)*, San Francisco, USA.
 
-**Oksuz, M. K., Satoglu, S. I., Kayakutlu, G., & Buyukozkan, K.** (2016).
-*A Genetic Algorithm for the P-Median Facility Location Problem.*
+**Montoya, M., González Velázquez, R., Estrada Analco, M., Martínez Flores, J. L., & Bernábe Loranca, M. B.** (2019).  
+*Solution Search for the Capacitated P-Median Problem using Tabu Search.*  
+*International Journal of Combinatorial Optimization Problems and Informatics, 10*(2), 17–25.
+
+**Oksuz, M. K., Satoglu, S. I., Kayakutlu, G., & Buyukozkan, K.** (2016).  
+*A Genetic Algorithm for the P-Median Facility Location Problem.*  
 In *Proceedings of the International Conference on Industrial Engineering and Operations Management*, July 2016.
 
-**Romero Montoya, M., González Velázquez, R., Estrada Analco, M., Martínez Flores, J. L., & Bernábe Loranca, M. B.** (2019).
-*Solution Search for the Capacitated P-Median Problem using Tabu Search.*
-*International Journal of Combinatorial Optimization Problems and Informatics*, 10(2), 17–25.
+**Rolland, E., Schilling, D. A., & Current, J. R.** (1996).  
+*An Efficient Tabu Search Procedure for the P-Median Problem.*  
+*European Journal of Operational Research, 96*(2), 329–342.  
 
 ## 🧾 License
 
