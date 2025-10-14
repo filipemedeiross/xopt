@@ -16,9 +16,17 @@ Applications include:
 
 ## 📚 References
 
+**Alkhedhairi, A.** (2008).
+*Simulated Annealing Metaheuristic for Solving P-Median Problem.*
+*International Journal of Contemporary Mathematical Sciences, 3*(28), 1357–1365.
+
 **Correa, E. S., Steiner, M. T. A., Freitas, A. A., & Carnieri, C.** (2001).  
 *A Genetic Algorithm for the P-Median Problem.*  
 In *Proceedings of the Genetic and Evolutionary Computation Conference (GECCO 2001)*, San Francisco, USA.
+
+**Glover, F., & Laguna, M.** (1997).
+*Tabu Search.*
+Boston: Kluwer Academic Publishers.
 
 **Montoya, M., González Velázquez, R., Estrada Analco, M., Martínez Flores, J. L., & Bernábe Loranca, M. B.** (2019).  
 *Solution Search for the Capacitated P-Median Problem using Tabu Search.*  
