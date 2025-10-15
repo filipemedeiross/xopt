@@ -20,6 +20,10 @@ Applications include:
 *Simulated Annealing Metaheuristic for Solving P-Median Problem.*
 *International Journal of Contemporary Mathematical Sciences, 3*(28), 1357–1365.
 
+**Barut, C., Yildirim, G., & Tatar, Y.** (2024).
+*An Intelligent and Interpretable Rule-Based Metaheuristic Approach to Task Scheduling in Cloud Systems.*
+*Knowledge-Based Systems, 284*, 111241.
+
 **Correa, E. S., Steiner, M. T. A., Freitas, A. A., & Carnieri, C.** (2001).  
 *A Genetic Algorithm for the P-Median Problem.*  
 In *Proceedings of the Genetic and Evolutionary Computation Conference (GECCO 2001)*, San Francisco, USA.
