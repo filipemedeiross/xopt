@@ -11,7 +11,7 @@ struct Solution {
     vector <int> facilities;
 };
 
-vector <int> kmedian (const Instance&, int = 50);
+vector <int> kmedoids (const Instance&, int = 50);
 
 double   evaluate (const Instance&, const vector <int>&);
 Solution tspmed   (const Instance&, int = 2);
