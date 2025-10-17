@@ -3,17 +3,11 @@
 
 #include <vector>
 #include "instance.h"
+#include "solution.h"
 
-using namespace std;
+std::vector <int> kmedoids (const Instance&, int = 50);
 
-struct Solution {
-    double cost;
-    vector <int> facilities;
-};
-
-vector <int> kmedoids (const Instance&, int = 50);
-
-double   evaluate (const Instance&, const vector <int>&);
+double   evaluate (const Instance&, const std::vector <int>&);
 Solution tspmed   (const Instance&, int = 2);
 
 #endif
