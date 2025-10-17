@@ -1,5 +1,7 @@
 #include <iostream>
 #include "instance.h"
+#include "solution.h"
+#include "ts.h"
 
 using namespace std;
 
@@ -9,8 +11,10 @@ int main (int argc, char* argv[]) {
         return 1;
     }
 
-    Instance instance(argv[1]);
-    instance.describe();
+    Instance instance (argv[1]);
+    Solution solution = tspmed (instance);
+
+    solution.describe();
 
     return 0;
 }
