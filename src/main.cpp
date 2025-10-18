@@ -1,7 +1,7 @@
 #include <iostream>
-#include "instance.h"
-#include "solution.h"
-#include "ts.h"
+#include "pmedian/instance.h"
+#include "pmedian/solution.h"
+#include "ts/ts.h"
 
 using namespace std;
 
