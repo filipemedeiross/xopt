@@ -2,12 +2,9 @@
 #define TS_H
 
 #include <vector>
-#include "instance.h"
-#include "solution.h"
+#include "../pmedian/instance.h"
+#include "../pmedian/solution.h"
 
-std::vector <int> kmedoids (const Instance&, int = 5, int = 3);
-
-double   evaluate (const Instance&, const std::vector <int>&);
-Solution tspmed   (const Instance&, int = 2);
+Solution tspmed (const Instance&, int = 2);
 
 #endif
