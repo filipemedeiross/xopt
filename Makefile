@@ -2,7 +2,7 @@
 CPPC = g++
 
 TARGET_EXEC := tspmed
-SRC_DIRS    := src/ts
+SRC_DIRS    := src
 BUILD_DIR   := build
 
 # Find all the C++ files
