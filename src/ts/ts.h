@@ -5,7 +5,7 @@
 #include "instance.h"
 #include "solution.h"
 
-std::vector <int> kmedoids (const Instance&, int = 50);
+std::vector <int> kmedoids (const Instance&, int = 5, int = 3);
 
 double   evaluate (const Instance&, const std::vector <int>&);
 Solution tspmed   (const Instance&, int = 2);
