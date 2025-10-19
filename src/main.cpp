@@ -1,11 +1,13 @@
 #include <vector>
 #include <future>
+#include <random>
 #include <cstdlib>
 #include <iostream>
 #include <algorithm>
 
 #include "pmedian/instance.h"
 #include "pmedian/solution.h"
+#include "pmedian/evaluate.h"
 #include "kmedoids/medoids.h"
 #include "kmedoids/kmedoids.h"
 #include "ts/ts.h"
@@ -29,14 +31,38 @@ int main (int argc, char* argv[]) {
             cerr << "Invalid n_restarts, using default: " << n_restarts << endl;
     }
 
-    cout << "Running " << n_restarts << " restarts..." << endl;
+    cout << "Running "
+         << n_restarts << " k-medoids restarts and "
+         << n_restarts << " random restarts..."      << endl;
 
     Instance instance (argv[1]);
 
-    vector <Medoids>  all_initial = kmedoids (instance, 5, n_restarts);
-    vector <Solution> all_solutions;
+    int p = instance.get_p();
+    int n = instance.get_n();
+    mt19937 rng(random_device{}());
+
+    vector <vector <int>> random_initials (n_restarts);
+    vector <Medoids> all_initial = kmedoids (instance, 5, n_restarts);
+
+    for (i = 0; i < n_restarts; ++i) {
+        vector <int> idx (n);
+        iota   (idx.begin(), idx.end(), 0  );
+        shuffle(idx.begin(), idx.end(), rng);
+
+        random_initials[i] = vector <int> (idx.begin(), idx.begin() + p);
+    }
+
     vector <future <Solution>> futures;
 
+    for (i = 0; i < n_restarts; ++i)
+        futures.push_back(
+            async(
+                launch::async,
+                [&instance, &random_initials, i] () {
+                    return tspmed(instance, random_initials[i]);
+                }
+            )
+        );
     for (i = 0; i < n_restarts; i++)
         futures.push_back(
             async (
@@ -47,14 +73,21 @@ int main (int argc, char* argv[]) {
             )
         );
 
-    for (i = 0; i < n_restarts; i++)
+    vector <Solution> all_solutions;
+    for (i = 0; i < 2 * n_restarts; i++)
         all_solutions.push_back(futures[i].get());
 
     cout << "Initial medoids and their results after TS:" << endl;
     for (i = 0; i < n_restarts; ++i)
         cout << "Restart #" << i + 1  << ": "
-             << all_initial  [i].cost << " -> "
-             << all_solutions[i].cost << endl;
+             << evaluate(instance, random_initials[i]) << " -> "
+             << all_solutions[i].cost                  << endl;
+
+    cout << "Random initials and their results after TS:" << endl;
+    for (i = n_restarts; i < 2 * n_restarts; ++i)
+        cout << "Restart #" << i + 1  << ": "
+             << all_initial  [i - n_restarts].cost << " -> "
+             << all_solutions[i             ].cost << endl;
 
     sort (
         all_solutions.begin(),
