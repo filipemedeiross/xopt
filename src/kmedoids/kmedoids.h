@@ -3,7 +3,8 @@
 
 #include <vector>
 #include "../pmedian/instance.h"
+#include "medoids.h"
 
-std::vector <int> kmedoids (const Instance&, int = 5, int = 3);
+std::vector <Medoids> kmedoids (const Instance&, int = 10, int = 5);
 
 #endif
