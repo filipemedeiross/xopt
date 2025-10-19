@@ -5,7 +5,6 @@
 #include "../pmedian/instance.h"
 #include "../pmedian/solution.h"
 #include "../pmedian/evaluate.h"
-#include "../kmedoids/kmedoids.h"
 #include "ts.h"
 
 #define UPPERB  1e18
@@ -24,7 +23,7 @@ bool choose_move (vector <int>& S, int p, int slack) {
     return coin(rng) > 0.5;
 }
 
-Solution tspmed (const Instance& instance, int iter_factor) {
+Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter_factor) {
     bool   tabu;
     int    v, iter, last, noimprove, node;
     double c, best_cost, cur_cost, move_cost;
@@ -38,7 +37,7 @@ Solution tspmed (const Instance& instance, int iter_factor) {
     int max_iter    = iter_factor * n;
     int stable_iter = 0.2 * max_iter;
 
-    vector <int> S = kmedoids(instance);
+    vector <int> S = medoids;
     vector <int> best_S = S;
 
     cur_cost = best_cost = evaluate(instance, S);
@@ -104,7 +103,7 @@ Solution tspmed (const Instance& instance, int iter_factor) {
             noimprove++;
         cur_cost = move_cost;
 
-        if (S.size() == p && cur_cost < best_cost) {
+        if ((int) S.size() == p && cur_cost < best_cost) {
             best_S    = S;
             best_cost = cur_cost;
 
@@ -116,16 +115,6 @@ Solution tspmed (const Instance& instance, int iter_factor) {
             tenure = uniform_int_distribution <> (1, p - 1)(rng);
         if ((noimprove + 1  ) % ((int) stable_iter /  5) == 0)
             slack++;
-        /*if ((iter - last + 1) % ((int) stable_iter /  2) == 0) {
-            fill(added.begin(), added.end(), false);
-
-            cout << "Restarting at iteration " << iter << endl;
-            S = kmedoids(instance);
-            for (int vi : S)
-                added[vi] = true;
-
-            cur_cost = evaluate(instance, S);
-        }*/
 
         iter++;
     }
