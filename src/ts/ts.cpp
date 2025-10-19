@@ -25,7 +25,7 @@ bool choose_move (vector <int>& S, int p, int slack) {
 
 Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter_factor) {
     bool   tabu;
-    int    v, iter, last, noimprove, node;
+    int    v, iter, last, node;
     double c, best_cost, cur_cost, move_cost;
 
     int n = instance.get_n();
@@ -35,7 +35,7 @@ Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter
     int slack  = 0;
     int tenure = (int) p / 2;
     int max_iter    = iter_factor * n;
-    int stable_iter = 0.2 * max_iter;
+    int stable_iter = 0.3 * max_iter;
 
     vector <int> S = medoids;
     vector <int> best_S = S;
@@ -47,7 +47,7 @@ Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter
     for (int vi : S)
         added[vi] = true;
 
-    iter = last = noimprove = 0;
+    iter = last = 0;
     while ((iter - last) < stable_iter && iter < max_iter) {
         node = -1;
         move_cost = UPPERB;
@@ -97,12 +97,7 @@ Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter
             added[node] = false;
         }
 
-        if (move_cost < cur_cost)
-            noimprove = 0;
-        else
-            noimprove++;
         cur_cost = move_cost;
-
         if ((int) S.size() == p && cur_cost < best_cost) {
             best_S    = S;
             best_cost = cur_cost;
@@ -111,9 +106,9 @@ Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter
             last  = iter;
         }
 
-        if ((noimprove + 1  ) % ((int) stable_iter / 10) == 0)
-            tenure = uniform_int_distribution <> (1, p - 1)(rng);
-        if ((noimprove + 1  ) % ((int) stable_iter /  5) == 0)
+        if ((iter - last + 1) % ((int) stable_iter / 10) == 0)
+            tenure = uniform_int_distribution <> ((int) p / 2, p - 1) (rng);
+        if ((iter - last + 1) % ((int) stable_iter /  2) == 0)
             slack++;
 
         iter++;
