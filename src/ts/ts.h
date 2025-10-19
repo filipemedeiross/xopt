@@ -5,6 +5,6 @@
 #include "../pmedian/instance.h"
 #include "../pmedian/solution.h"
 
-Solution tspmed (const Instance&, int = 2);
+Solution tspmed (const Instance&, const std::vector <int>&, int = 2);
 
 #endif
