@@ -46,14 +46,13 @@ vector <int> initialize_medoids (
 }
 
 Medoids local_search (const Instance& instance, Medoids sol, int max_iter) {
-    bool   improved;
-    double new_cost;
-    int    i, h, old, iter;
+    bool improved;
+    int  iter;
 
     int n = instance.get_n();
     int p = instance.get_p();
 
-    unordered_set <int> medoid_set(
+    unordered_set<int> medoid_set(
         sol.medoids.begin(),
         sol.medoids.end  ()
     );
@@ -63,27 +62,37 @@ Medoids local_search (const Instance& instance, Medoids sol, int max_iter) {
         iter++;
         improved = false;
 
-        for (i = 0; i < p; i++) {
-            old = sol.medoids[i];
+        for (int i = 0; i < p; ++i) {
+            int current = sol.medoids[i];
+            double best_cost = sol.cost;
+            int best_candidate = current;
 
-            for (h = 0; h < n; ++h) {
+            for (int h = 0; h < n; ++h) {
                 if (medoid_set.contains(h))
                     continue;
 
-                sol.medoids[i] = h;
-                new_cost = evaluate(instance, sol.medoids);
+                double new_cost = evaluate_interchange(
+                    instance,
+                    sol.eval,
+                    current,
+                    h
+                );
 
-                if (new_cost + EPSILON < sol.cost) {
-                    sol.cost = new_cost;
-                    improved = true;
-
-                    medoid_set.erase(old);
-                    medoid_set.insert(h);
-
-                    old = h;
-                } else {
-                    sol.medoids[i] = old;
+                if (new_cost + EPSILON < best_cost) {
+                    best_cost = new_cost;
+                    best_candidate = h;
                 }
+            }
+
+            if (best_candidate != current) {
+                medoid_set.erase(current);
+                medoid_set.insert(best_candidate);
+
+                sol.medoids[i] = best_candidate;
+                sol.eval  = evaluate(instance, sol.medoids);
+                sol.cost  = sol.eval.cost;
+
+                improved = true;
             }
         }
     } while (improved && iter < max_iter);
@@ -106,9 +115,11 @@ vector <Medoids> kmedoids(const Instance& instance, int max_iter, int n_restarts
     for (restart = 0; restart < n_restarts; restart++) {
         vector <int> medoids = initialize_medoids(p, usage, weights, rng);
 
+        Evaluation eval = evaluate(instance, medoids);
         all_solutions.push_back({
-            evaluate(instance, medoids),
-            medoids
+            eval.cost,
+            medoids,
+            eval
         });
     }
 

@@ -80,8 +80,8 @@ int main (int argc, char* argv[]) {
     cout << "Initial medoids and their results after TS:" << endl;
     for (i = 0; i < n_restarts; ++i)
         cout << "Restart #" << i + 1  << ": "
-             << evaluate(instance, random_initials[i]) << " -> "
-             << all_solutions[i].cost                  << endl;
+             << evaluate(instance, random_initials[i]).cost << " -> "
+             << all_solutions[i].cost                         << endl;
 
     cout << "Random initials and their results after TS:" << endl;
     for (i = n_restarts; i < 2 * n_restarts; ++i)
