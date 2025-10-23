@@ -1,6 +1,7 @@
 #include <vector>
 #include <random>
 #include <algorithm>
+#include <cmath>
 
 #include "../pmedian/instance.h"
 #include "../pmedian/solution.h"
@@ -8,31 +9,18 @@
 #include "ts.h"
 
 #define UPPERB  1e18
+#define EPSILON 1e-9
 
 using namespace std;
 
-bool choose_move (vector <int>& S, int p, int slack) {
-    mt19937 rng (random_device{}());
-    uniform_real_distribution<> coin (0.0, 1.0);
-
-    if ((int) S.size() < p - slack)
-        return true ;
-    if ((int) S.size() > p + slack)
-        return false;
-
-    return coin(rng) > 0.5;
-}
-
 Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter_factor) {
-    bool   tabu;
-    int    v, iter, last, node;
-    double c, best_cost, cur_cost, move_cost;
+    int    iter, last;
+    double best_cost, cur_cost;
 
     int n = instance.get_n();
     int p = instance.get_p();
     mt19937 rng (random_device{}());
 
-    int slack  = 0;
     int tenure = (int) p / 2;
     int max_iter    = iter_factor * n;
     int stable_iter = 0.3 * max_iter;
@@ -40,76 +28,75 @@ Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter
     vector <int> S = medoids;
     vector <int> best_S = S;
 
-    cur_cost = best_cost = evaluate(instance, S);
+    Evaluation eval = evaluate(instance, S);
+    cur_cost = best_cost = eval.cost;
 
     vector <int>  time  (n, -p   );
-    vector <bool> added (n, false);
+    vector <bool> in_solution(n, false);
     for (int vi : S)
-        added[vi] = true;
+        in_solution[vi] = true;
 
     iter = last = 0;
     while ((iter - last) < stable_iter && iter < max_iter) {
-        node = -1;
-        move_cost = UPPERB;
+        int best_out = -1;
+        int best_in  = -1;
+        double best_move_cost = UPPERB;
+        bool   best_is_tabu = false;
 
-        if (choose_move(S, p, slack)) {
-            for (v = 0; v < n; v++) {
-                if (added[v] ||
-                   (iter - time[v]) < tenure)
+        for (int idx = 0; idx < p; ++idx) {
+            int out_vertex = S[idx];
+            bool out_tabu = (iter - time[out_vertex]) < tenure;
+
+            for (int v = 0; v < n; ++v) {
+                if (in_solution[v])
                     continue;
 
-                S.push_back(v);
-                c = evaluate(instance, S);
-                S.pop_back ( );
+                bool in_tabu = (iter - time[v]) < tenure;
+                double move_cost = evaluate_interchange(
+                    instance,
+                    eval,
+                    out_vertex,
+                    v
+                );
 
-                if (c < move_cost) {
-                    node      = v;
-                    move_cost = c;
+                bool tabu = out_tabu || in_tabu;
+                bool aspiration = move_cost + EPSILON < best_cost;
+
+                if ((tabu && !aspiration))
+                    continue;
+
+                if (move_cost + EPSILON < best_move_cost ||
+                    (abs(move_cost - best_move_cost) <= EPSILON && tabu && !best_is_tabu)) {
+                    best_move_cost = move_cost;
+                    best_out = idx;
+                    best_in  = v;
+                    best_is_tabu = tabu && !aspiration;
                 }
             }
-
-            S.push_back(node);
-            added[node] = true;
-            time [node] = iter;
-        } else {
-            for (size_t i = 0; i < S.size(); ++i) {
-                v = S[i];
-
-                swap(S[i], S.back());
-                S.pop_back();
-
-                c    = evaluate(instance, S);
-                tabu = (iter - time[v]) < tenure;
-
-                if (( tabu && c < best_cost) ||
-                    (!tabu && c < move_cost)) {
-                    node      = v;
-                    move_cost = c;
-                }
-
-                S.push_back(v);
-                swap(S[i], S.back());
-            }
-
-            S.erase(
-                find(S.begin(), S.end(), node)
-            );
-            added[node] = false;
         }
 
-        cur_cost = move_cost;
-        if ((int) S.size() == p && cur_cost < best_cost) {
+        if (best_out == -1 || best_in == -1)
+            break;
+
+        int removed = S[best_out];
+        in_solution[removed] = false;
+        in_solution[best_in] = true;
+        S[best_out] = best_in;
+
+        time[removed] = iter;
+        time[best_in] = iter;
+
+        eval = evaluate(instance, S);
+        cur_cost = eval.cost;
+
+        if (cur_cost + EPSILON < best_cost) {
             best_S    = S;
             best_cost = cur_cost;
-
-            slack = 0;
-            last  = iter;
+            last      = iter;
         }
 
         if ((iter - last + 1) % ((int) stable_iter / 10) == 0)
             tenure = uniform_int_distribution <> ((int) p / 2, p - 1) (rng);
-        if ((iter - last + 1) % ((int) stable_iter /  2) == 0)
-            slack++;
 
         iter++;
     }
