@@ -21,16 +21,10 @@ Evaluation evaluate (const Instance& instance, const vector <int>& medoids) {
         for (u = 0; u < n; u++) {
             dist = instance(u, medoid);
 
-            if (dist < eval.d1[u]) {
-                eval.d2[u] = eval.d1[u];
-                eval.d1[u] = dist;
-
-                eval.second [u] = eval.closest[u];
-                eval.closest[u] = medoid;
-            } else if (dist < eval.d2[u]) {
-                eval.d2    [u] = dist;
-                eval.second[u] = medoid;
-            }
+            if      (dist < eval.d1[u])
+                eval.update_first (u, medoid, dist);
+            else if (dist < eval.d2[u])
+                eval.update_second(u, medoid, dist);
         }
     }
 
@@ -61,4 +55,48 @@ double evaluate_swap (const Instance& instance, const Evaluation & eval, int out
     }
 
     return new_cost;
+}
+
+void update_evaluation (
+    const Instance&     instance,
+    const vector <int>& medoids ,
+    int out,
+    int in ,
+    Evaluation& eval
+) {
+    int u, old_best_dist, dist_to_in;
+
+    int n = instance.get_n();
+    double  cost_delta = 0.0;
+
+    for (u = 0; u < n; u++) {
+        old_best_dist = eval.d1[u];
+        dist_to_in    = instance(u, in);
+
+        if (eval.closest[u] == out) {
+            if (dist_to_in <= eval.d2[u]) {
+                eval.closest[u] = in;
+                eval.d1     [u] = dist_to_in;
+            } else {
+                eval.closest[u] = eval.second[u];
+                eval.d1     [u] = eval.d2[u];
+
+                eval.recompute_second(instance, medoids, u);
+            }
+        }
+        else if (eval.second[u] == out) {
+            if (dist_to_in < eval.d1[u])
+                eval.update_first(u, in, dist_to_in);
+            else
+                eval.recompute_second(instance, medoids, u);
+        }
+        else if (dist_to_in < eval.d1[u])
+            eval.update_first (u, in, dist_to_in);
+        else if (dist_to_in < eval.d2[u])
+            eval.update_second(u, in, dist_to_in);
+
+        cost_delta += static_cast <double> (eval.d1[u] - old_best_dist);
+    }
+
+    eval.cost += cost_delta;
 }
