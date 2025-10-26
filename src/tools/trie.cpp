@@ -56,10 +56,36 @@ int SolutionTrie::contains (const vector <int>& S) const {
                 node->right);
 
         if (!node)
-            return false;
+            return 0;
     }
 
-    return node->visit_count;
+    return ++node->visit_count;
+}
+
+int SolutionTrie::contains_swap(
+    const vector <bool>& in_solution,
+    int out,
+    int in
+) const {
+    int i, bit;
+    const Node* node = root;
+
+    for (i = 0; i < n; i++) {
+        if      (i == out)
+            bit = 0;
+        else if (i == in )
+            bit = 1;
+        else
+            bit = in_solution[i] ? 1 : 0;
+
+        node = (bit == 0   ?
+                node->left :
+                node->right);
+        if (!node)
+            return 0;
+    }
+
+    return ++node->visit_count;
 }
 
 vector <Solution> SolutionTrie::get_all_solutions () const {
