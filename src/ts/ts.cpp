@@ -1,5 +1,6 @@
 #include <vector>
 #include <random>
+#include <limits>
 #include <algorithm>
 
 #include "../pmedian/instance.h"
@@ -7,109 +8,94 @@
 #include "../pmedian/evaluate.h"
 #include "ts.h"
 
-#define UPPERB  1e18
-
 using namespace std;
 
-bool choose_move (vector <int>& S, int p, int slack) {
-    mt19937 rng (random_device{}());
-    uniform_real_distribution<> coin (0.0, 1.0);
-
-    if ((int) S.size() < p - slack)
-        return true ;
-    if ((int) S.size() > p + slack)
-        return false;
-
-    return coin(rng) > 0.5;
-}
+constexpr double EPSILON = 1e-9;
 
 Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter_factor) {
-    bool   tabu;
-    int    v, iter, last, node;
-    double c, best_cost, cur_cost, move_cost;
+    int    iter, last;
+    int    idx, out, in;
+    int    best_in, best_out;
+    int    tabu_in, tabu_out;
+    double best_cost, candidate_cost;
+    double best_move_cost, best_tabu_cost;
 
     int n = instance.get_n();
     int p = instance.get_p();
     mt19937 rng (random_device{}());
 
-    int slack  = 0;
-    int tenure = (int) p / 2;
     int max_iter    = iter_factor * n;
-    int stable_iter = 0.3 * max_iter;
+    int stable_iter = static_cast <int> (0.3 * max_iter);
 
-    vector <int> S = medoids;
+    int tenure      = static_cast <int> (p / 2);
+    int span_tenure = static_cast <int> (stable_iter / 5);
+
+    vector <int> S      = medoids;
     vector <int> best_S = S;
 
-    cur_cost = best_cost = evaluate(instance, S);
+    Evaluation eval = evaluate(instance, S);
 
-    vector <int>  time  (n, -p   );
-    vector <bool> added (n, false);
-    for (int vi : S)
-        added[vi] = true;
+    vector <int>  time       (n, -p   );
+    vector <bool> in_solution(n, false);
+    for (int v : S)
+        in_solution[v] = true;
 
-    iter = last = 0;
+    best_cost = eval.cost;
+    last = iter = 0;
     while ((iter - last) < stable_iter && iter < max_iter) {
-        node = -1;
-        move_cost = UPPERB;
+        best_move_cost = numeric_limits <double>::infinity();
+        best_in  = -1;
+        best_out = -1;
 
-        if (choose_move(S, p, slack)) {
-            for (v = 0; v < n; v++) {
-                if (added[v] ||
-                   (iter - time[v]) < tenure)
+        best_tabu_cost = numeric_limits <double>::infinity();
+        tabu_in  = -1;
+        tabu_out = -1;
+
+        for (idx = 0; idx < p; idx++) {
+            out = S[idx];
+
+            for (in = 0; in < n; in++) {
+                if (in_solution[in])
                     continue;
 
-                S.push_back(v);
-                c = evaluate(instance, S);
-                S.pop_back ( );
+                candidate_cost = evaluate_swap(instance, eval, out, in);
 
-                if (c < move_cost) {
-                    node      = v;
-                    move_cost = c;
+                if ((iter - time[in]) < tenure) {
+                    if (candidate_cost + EPSILON < best_cost &&
+                        candidate_cost + EPSILON < best_move_cost) {
+                        best_move_cost = candidate_cost;
+                        best_in  = in ;
+                        best_out = out;
+                    } else if (candidate_cost + EPSILON < best_tabu_cost) {
+                        best_tabu_cost = candidate_cost;
+                        tabu_in  = in ;
+                        tabu_out = out;
+                    }
+                } else if (candidate_cost + EPSILON < best_move_cost) {
+                    best_move_cost = candidate_cost;
+                    best_in  = in ;
+                    best_out = out;
                 }
             }
-
-            S.push_back(node);
-            added[node] = true;
-            time [node] = iter;
-        } else {
-            for (size_t i = 0; i < S.size(); ++i) {
-                v = S[i];
-
-                swap(S[i], S.back());
-                S.pop_back();
-
-                c    = evaluate(instance, S);
-                tabu = (iter - time[v]) < tenure;
-
-                if (( tabu && c < best_cost) ||
-                    (!tabu && c < move_cost)) {
-                    node      = v;
-                    move_cost = c;
-                }
-
-                S.push_back(v);
-                swap(S[i], S.back());
-            }
-
-            S.erase(
-                find(S.begin(), S.end(), node)
-            );
-            added[node] = false;
         }
 
-        cur_cost = move_cost;
-        if ((int) S.size() == p && cur_cost < best_cost) {
+        *ranges::find(S, best_out) = best_in;
+
+        in_solution[best_out] = false;
+        in_solution[best_in ] = true;
+        time       [best_out] = iter;
+
+        update_evaluation (instance, S, best_out, best_in, eval);
+
+        if (eval.cost + EPSILON < best_cost) {
             best_S    = S;
-            best_cost = cur_cost;
+            best_cost = eval.cost;
 
-            slack = 0;
-            last  = iter;
+            last = iter;
         }
 
-        if ((iter - last + 1) % ((int) stable_iter / 10) == 0)
-            tenure = uniform_int_distribution <> ((int) p / 2, p - 1) (rng);
-        if ((iter - last + 1) % ((int) stable_iter /  2) == 0)
-            slack++;
+        if ((iter - last + 1) % span_tenure == 0)
+            tenure = uniform_int_distribution <int> ((int) p / 2, p - 1)(rng);
 
         iter++;
     }
