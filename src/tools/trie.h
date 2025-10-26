@@ -11,7 +11,7 @@ struct Node {
     Node* left  = nullptr;
     Node* right = nullptr;
 
-    int visit_count = 0;
+    mutable int visit_count = 0;
 };
 
 class SolutionTrie {
