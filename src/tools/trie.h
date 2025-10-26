@@ -28,8 +28,9 @@ class SolutionTrie {
         SolutionTrie  (int, int);
         ~SolutionTrie ();
 
-        vector <int> to_binary  (const vector <int>&) const;
-        int contains            (const vector <int>&) const;
+        vector <int> to_binary  (const vector <int >&          ) const;
+        int contains            (const vector <int >&          ) const;
+        int contains_swap       (const vector <bool>&, int, int) const;
         int contains_and_update (const vector <int>&);
 
         vector <Solution> get_all_solutions () const;
