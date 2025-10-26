@@ -103,5 +103,14 @@ int main (int argc, char* argv[]) {
     cout << "Best solution found:" << endl;
     solutions.front().describe();
 
+    shuffle (idx.begin(), idx.end(), rng);
+
+    vector <int> initial (idx.begin(), idx.begin() + p);
+    Solution     solution = tspmed (instance, initial);
+
+    cout << endl;
+    cout << "Isolated solution:" << endl;
+    solution.describe();
+
     return 0;
 }
