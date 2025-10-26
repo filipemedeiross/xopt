@@ -16,24 +16,24 @@ using namespace std;
 
 int main (int argc, char* argv[]) {
     if (argc < 2) {
-        cerr << "Usage: " << argv[0] << " <file_path> [n_restarts]" << endl;
+        cerr << "Usage: " << argv[0] << " <file_path> [restarts]" << endl;
         return 1;
     }
 
-    size_t i, n_restarts = 5;
+    size_t i, restarts = 5;
 
-    if (argc >= 3) {
+    if (argc == 3) {
         int tmp = atoi(argv[2]);
 
         if (tmp > 0)
-            n_restarts = tmp;
+            restarts = tmp;
         else
-            cerr << "Invalid n_restarts, using default: " << n_restarts << endl;
+            cerr << "Invalid restarts, using default: " << restarts << endl;
     }
 
     cout << "Running "
-         << n_restarts << " k-medoids restarts and "
-         << n_restarts << " random restarts..."      << endl;
+         << restarts << " k-medoids restarts and "
+         << restarts << " random restarts..." << endl;
 
     Instance instance (argv[1]);
 
@@ -41,57 +41,59 @@ int main (int argc, char* argv[]) {
     int n = instance.get_n();
     mt19937 rng(random_device{}());
 
-    vector <vector <int>> random_initials (n_restarts);
-    vector <Medoids> all_initial = kmedoids (instance, 5, n_restarts);
+    vector <Solution>          solutions;
+    vector <future <Solution>> futures  ;
 
-    for (i = 0; i < n_restarts; ++i) {
-        vector <int> idx (n);
-        iota   (idx.begin(), idx.end(), 0  );
-        shuffle(idx.begin(), idx.end(), rng);
+    vector <Medoids>      imedoids = kmedoids (instance,
+                                               5       ,
+                                               restarts);
+    vector <vector <int>> irandom (restarts);
 
-        random_initials[i] = vector <int> (idx.begin(), idx.begin() + p);
+    vector <int> idx (n);
+    iota (idx.begin(), idx.end(), 0);
+
+    for (i = 0; i < restarts; ++i) {
+        shuffle (idx.begin(), idx.end(), rng);
+        irandom[i] = vector <int> (idx.begin(), idx.begin() + p);
     }
 
-    vector <future <Solution>> futures;
-
-    for (i = 0; i < n_restarts; ++i)
+    for (i = 0; i < restarts; ++i)
         futures.push_back(
             async(
                 launch::async,
-                [&instance, &random_initials, i] () {
-                    return tspmed(instance, random_initials[i]);
+                [&instance, &irandom, i] () {
+                    return tspmed (instance, irandom[i]);
                 }
             )
         );
-    for (i = 0; i < n_restarts; i++)
+    for (i = 0; i < restarts; i++)
         futures.push_back(
             async (
                 launch::async,
-                [&instance, &all_initial, i] () {
-                    return tspmed(instance, all_initial[i].medoids);
+                [&instance, &imedoids, i] () {
+                    return tspmed (instance, imedoids[i].medoids);
                 }
             )
         );
 
-    vector <Solution> all_solutions;
-    for (i = 0; i < 2 * n_restarts; i++)
-        all_solutions.push_back(futures[i].get());
-
-    cout << "Initial medoids and their results after TS:" << endl;
-    for (i = 0; i < n_restarts; ++i)
-        cout << "Restart #" << i + 1  << ": "
-             << evaluate(instance, random_initials[i]) << " -> "
-             << all_solutions[i].cost                  << endl;
+    for (i = 0; i < 2 * restarts; i++)
+        solutions.push_back(futures[i].get());
 
     cout << "Random initials and their results after TS:" << endl;
-    for (i = n_restarts; i < 2 * n_restarts; ++i)
+    for (i = 0; i < restarts; ++i)
         cout << "Restart #" << i + 1  << ": "
-             << all_initial  [i - n_restarts].cost << " -> "
-             << all_solutions[i             ].cost << endl;
+             << evaluate_cost(instance, irandom[i]) << " -> "
+             << solutions[i].cost                   << endl;
+
+    cout << "Initial medoids and their results after TS:" << endl;
+    for (i = restarts; i < 2 * restarts; ++i)
+        cout << "Restart #" << i + 1  << ": "
+             << imedoids  [i - restarts].cost << " -> "
+             << solutions [i           ].cost << endl;
 
     sort (
-        all_solutions.begin(),
-        all_solutions.end  (),
+        solutions.begin(),
+        solutions.end  (),
         [] (const Solution& a, const Solution& b) {
             return a.cost < b.cost;
         }
@@ -99,7 +101,7 @@ int main (int argc, char* argv[]) {
 
     cout << endl;
     cout << "Best solution found:" << endl;
-    all_solutions.front().describe();
+    solutions.front().describe();
 
     return 0;
 }
