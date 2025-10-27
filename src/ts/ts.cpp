@@ -32,16 +32,18 @@ TSResult tspmed (const Instance& instance, const vector <int>& medoids, int iter
 
     vector <int> S      = medoids;
     vector <int> best_S = S;
-    Evaluation   eval   = evaluate(instance, S);
 
-    TSResult      result (n,  p);
-    vector <int>  time   (n, -p);
+    Evaluation eval = evaluate(instance, S);
+    best_cost       = eval.cost;
+
+    TSResult result (SolutionTrie::get_global_instance (n, p));
+
+    vector <int>              time (n, -p);
+    shared_ptr <SolutionTrie> long_term = result.long_term;
+
     vector <bool> in_solution(n, false);
     for (int v : S)
         in_solution[v] = true;
-
-    SolutionTrie& long_term = *result.long_term;
-    best_cost = eval.cost;
 
     last = iter = 0;
     while ((iter - last) < stable_iter && iter < max_iter) {
@@ -56,7 +58,7 @@ TSResult tspmed (const Instance& instance, const vector <int>& medoids, int iter
             for (in = 0; in < n; in++) {
                 if (in_solution[in])
                     continue;
-                if (long_term.contains_swap(in_solution, out, in))
+                if (long_term->contains_swap(in_solution, out, in))
                     continue;
 
                 candidate_cost = evaluate_swap(instance, eval, out, in);
@@ -80,7 +82,7 @@ TSResult tspmed (const Instance& instance, const vector <int>& medoids, int iter
 
         if (best_move_cost >= eval.cost &&
             best_tabu_cost >= eval.cost)
-            long_term.contains_and_update(S);
+            long_term->contains_and_update(S);
 
         *ranges::find(S, best_out) = best_in;
 
@@ -106,7 +108,8 @@ TSResult tspmed (const Instance& instance, const vector <int>& medoids, int iter
         iter++;
     }
 
-    result.best = {best_cost, best_S};
+    result.best = {best_cost,
+                   best_S   };
 
     return result;
 }
