@@ -7,16 +7,15 @@
 #include "../pmedian/solution.h"
 #include "../tools/trie.h"
 
-struct TSResult {
-    Solution                  best;
-    unique_ptr <SolutionTrie> long_term;
+using namespace std;
 
-    TSResult (int n, int p) :
-        best      (),
-        long_term (make_unique <SolutionTrie> (n, p))
-    {}
+struct TSResult {
+    Solution   best {0.0, {}};
+    shared_ptr <SolutionTrie> long_term;
+
+    TSResult (shared_ptr <SolutionTrie> solution) : long_term(solution) {}
 };
 
-TSResult tspmed (const Instance&, const std::vector <int>&, int = 2);
+TSResult tspmed (const Instance&, const vector <int>&, int = 2);
 
 #endif
