@@ -13,7 +13,7 @@ using namespace std;
 
 constexpr double EPSILON = 1e-9;
 
-Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter_factor) {
+TSResult tspmed (const Instance& instance, const vector <int>& medoids, int iter_factor) {
     int    iter, last;
     int    idx, out, in;
     int    best_in, best_out;
@@ -34,15 +34,16 @@ Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter
     vector <int> best_S = S;
     Evaluation   eval   = evaluate(instance, S);
 
-    SolutionTrie  long_term  (n,  p);
-    vector <int>  time       (n, -p);
+    TSResult      result (n,  p);
+    vector <int>  time   (n, -p);
     vector <bool> in_solution(n, false);
     for (int v : S)
         in_solution[v] = true;
 
+    SolutionTrie& long_term = *result.long_term;
     best_cost = eval.cost;
-    last = iter = 0;
 
+    last = iter = 0;
     while ((iter - last) < stable_iter && iter < max_iter) {
         best_tabu_cost = numeric_limits <double>::infinity();
         best_move_cost = numeric_limits <double>::infinity();
@@ -66,8 +67,9 @@ Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter
                         best_move_cost = candidate_cost;
                         best_in  = in ;
                         best_out = out;
-                    } else if (candidate_cost + EPSILON < best_tabu_cost)
+                    } else if (candidate_cost + EPSILON < best_tabu_cost) {
                         best_tabu_cost = candidate_cost;
+                    }
                 } else if (candidate_cost + EPSILON < best_move_cost) {
                     best_move_cost = candidate_cost;
                     best_in  = in ;
@@ -76,8 +78,8 @@ Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter
             }
         }
 
-        if (best_move_cost > eval.cost &&
-            best_tabu_cost > eval.cost)
+        if (best_move_cost >= eval.cost &&
+            best_tabu_cost >= eval.cost)
             long_term.contains_and_update(S);
 
         *ranges::find(S, best_out) = best_in;
@@ -104,5 +106,7 @@ Solution tspmed (const Instance& instance, const vector <int>& medoids, int iter
         iter++;
     }
 
-    return {best_cost, best_S};
+    result.best = {best_cost, best_S};
+
+    return result;
 }

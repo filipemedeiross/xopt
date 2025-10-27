@@ -2,6 +2,7 @@
 #include <future>
 #include <random>
 #include <cstdlib>
+#include <numeric>
 #include <iostream>
 #include <algorithm>
 
@@ -41,8 +42,11 @@ int main (int argc, char* argv[]) {
     int n = instance.get_n();
     mt19937 rng(random_device{}());
 
-    vector <Solution>          solutions;
-    vector <future <Solution>> futures  ;
+    vector <TSResult>          solutions;
+    vector <future <TSResult>> futures  ;
+
+    solutions.reserve(2 * restarts);
+    futures  .reserve(2 * restarts);
 
     vector <Medoids>      imedoids = kmedoids (instance,
                                                5       ,
@@ -80,36 +84,55 @@ int main (int argc, char* argv[]) {
         solutions.push_back(futures[i].get());
 
     cout << "Random initials and their results after TS:" << endl;
-    for (i = 0; i < restarts; ++i)
-        cout << "Restart #" << i + 1  << ": "
+    for (i = 0; i < restarts; ++i) {
+        const auto stored = solutions[i].long_term->get_all_solutions();
+
+        cout << "Restart #" << i + 1                << ": "
              << evaluate_cost(instance, irandom[i]) << " -> "
-             << solutions[i].cost                   << endl;
+             << solutions[i].best.cost              << " ("
+             << stored.size()                       << " stored solutions)"
+             << endl;
+    }
 
     cout << "Initial medoids and their results after TS:" << endl;
-    for (i = restarts; i < 2 * restarts; ++i)
-        cout << "Restart #" << i + 1  << ": "
-             << imedoids  [i - restarts].cost << " -> "
-             << solutions [i           ].cost << endl;
+    for (i = restarts; i < 2 * restarts; ++i) {
+        const auto stored = solutions[i].long_term->get_all_solutions();
+
+        cout << "Restart #" << i + 1               << ": "
+             << imedoids  [i - restarts].cost      << " -> "
+             << solutions [i           ].best.cost << " ("
+             << stored.size()                      << " stored solutions)"
+             << endl;
+    }
 
     sort (
         solutions.begin(),
         solutions.end  (),
-        [] (const Solution& a, const Solution& b) {
-            return a.cost < b.cost;
+        [] (const TSResult& a, const TSResult& b) {
+            return a.best.cost < b.best.cost;
         }
     );
 
     cout << endl;
     cout << "Best solution found:" << endl;
-    solutions.front().describe();
+    solutions.front().best.describe();
+    cout << "Long-term memory stored "
+         << solutions.front().long_term->get_all_solutions().size()
+         << " solutions." << endl;
 
     shuffle (idx.begin(), idx.end(), rng);
     vector <int> initial (idx.begin(), idx.begin() + p);
-    Solution     solution = tspmed (instance, initial );
+    TSResult     solution = tspmed (instance, initial);
 
     cout << endl;
     cout << "Isolated solution:" << endl;
-    solution.describe();
+    solution.best.describe();
+
+    auto stored = solution.long_term->get_all_solutions();
+
+    cout << endl;
+    cout << "Long-term memory collected " << stored.size()
+         << " unique solutions."          << endl;
 
     return 0;
 }
