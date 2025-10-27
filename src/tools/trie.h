@@ -1,8 +1,11 @@
 #ifndef TRIE_H
 #define TRIE_H
 
+#include <mutex>
+#include <memory>
 #include <vector>
 #include <algorithm>
+#include <shared_mutex>
 #include "../pmedian/solution.h"
 
 using namespace std;
@@ -20,6 +23,10 @@ class SolutionTrie {
         int p;
         Node* root;
 
+        mutable shared_mutex mutex;
+        static  std::mutex   global_mutex;
+        static  shared_ptr <SolutionTrie> global_instance;
+
         void free_node   (Node*);
         void dfs_collect (const Node*  ,
                           vector <int>&,
@@ -33,7 +40,8 @@ class SolutionTrie {
         int contains_swap       (const vector <bool>&, int, int) const;
         int contains_and_update (const vector <int>&);
 
-        vector <Solution> get_all_solutions () const;
+        vector            <Solution>     get_all_solutions   () const;
+        static shared_ptr <SolutionTrie> get_global_instance (int, int);
 };
 
 #endif

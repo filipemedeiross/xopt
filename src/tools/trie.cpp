@@ -1,5 +1,8 @@
 #include "trie.h"
 
+mutex                     SolutionTrie::global_mutex;
+shared_ptr <SolutionTrie> SolutionTrie::global_instance = nullptr;
+
 SolutionTrie::SolutionTrie (
     int nodes  ,
     int medians
@@ -8,14 +11,28 @@ SolutionTrie::SolutionTrie (
 }
 
 SolutionTrie::~SolutionTrie () {
+    unique_lock <shared_mutex> lock(mutex);
+
     free_node(root);
+}
+
+shared_ptr <SolutionTrie> SolutionTrie::get_global_instance (
+    int nodes  ,
+    int medians
+) {
+    lock_guard <std::mutex> guard(global_mutex);
+
+    if (!global_instance)
+        global_instance = make_shared <SolutionTrie> (nodes, medians);
+
+    return global_instance;
 }
 
 void SolutionTrie::free_node (Node* node) {
     if (!node)
         return;
 
-    free_node(node->left);
+    free_node(node->left );
     free_node(node->right);
 
     delete node;
@@ -31,6 +48,8 @@ vector <int> SolutionTrie::to_binary (const vector <int>& S) const {
 
 int SolutionTrie::contains_and_update (const vector <int>& S) {
     vector <int> bits = to_binary(S);
+
+    unique_lock <shared_mutex> lock(mutex);
 
     Node* node = root;
     for (int bit : bits) {
@@ -49,6 +68,7 @@ int SolutionTrie::contains_and_update (const vector <int>& S) {
 int SolutionTrie::contains (const vector <int>& S) const {
     vector <int> bits = to_binary(S);
 
+    unique_lock <shared_mutex> lock(mutex);
     const Node* node = root;
     for (int bit : bits) {
         node = (bit == 0   ?
@@ -70,6 +90,7 @@ int SolutionTrie::contains_swap(
     int i, bit;
     const Node* node = root;
 
+    unique_lock <shared_mutex> lock(mutex);
     for (i = 0; i < n; i++) {
         if      (i == out)
             bit = 0;
@@ -91,7 +112,9 @@ int SolutionTrie::contains_swap(
 vector <Solution> SolutionTrie::get_all_solutions () const {
     vector <int     > current;
     vector <Solution> results;
-    dfs_collect(root, current, results);
+
+    shared_lock <shared_mutex> lock(mutex);
+    dfs_collect (root, current, results);
 
     return results;
 }
