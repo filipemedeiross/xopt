@@ -24,25 +24,41 @@ Applications include:
 *An Intelligent and Interpretable Rule-Based Metaheuristic Approach to Task Scheduling in Cloud Systems.*
 *Knowledge-Based Systems, 284*, 111241.
 
-**Correa, E. S., Steiner, M. T. A., Freitas, A. A., & Carnieri, C.** (2001).  
-*A Genetic Algorithm for the P-Median Problem.*  
+**Beasley, J. E.** (1985).
+*A Note on Solving Large P-Median Problems.*
+*European Journal of Operational Research, 21*(2), 270–273.
+
+**Correa, E. S., Steiner, M. T. A., Freitas, A. A., & Carnieri, C.** (2001).
+*A Genetic Algorithm for the P-Median Problem.*
 In *Proceedings of the Genetic and Evolutionary Computation Conference (GECCO 2001)*, San Francisco, USA.
 
 **Glover, F., & Laguna, M.** (1997).
 *Tabu Search.*
 Boston: Kluwer Academic Publishers.
 
-**Montoya, M., González Velázquez, R., Estrada Analco, M., Martínez Flores, J. L., & Bernábe Loranca, M. B.** (2019).  
-*Solution Search for the Capacitated P-Median Problem using Tabu Search.*  
+**Loranca, Maria B. B., González Velázquez, R., & Estrada Analco, M.** (2015).
+*The P-Median Problem: A Tabu Search Approximation Proposal Applied to Districts.*
+*Journal of Mathematics and System Science, 5*(3), 100–112.
+
+**Mladenović, N., Brimberg, J., Hansen, P., & Moreno Pérez, J. A.** (2007).
+*The P-Median Problem: A Survey of Metaheuristic Approaches.*
+*European Journal of Operational Research, 179*(3), 927–939.
+
+**Montoya, M., González Velázquez, R., Estrada Analco, M., Martínez Flores, J. L., & Bernábe Loranca, M. B.** (2019).
+*Solution Search for the Capacitated P-Median Problem using Tabu Search.*
 *International Journal of Combinatorial Optimization Problems and Informatics, 10*(2), 17–25.
 
-**Oksuz, M. K., Satoglu, S. I., Kayakutlu, G., & Buyukozkan, K.** (2016).  
-*A Genetic Algorithm for the P-Median Facility Location Problem.*  
+**Montoya, M., Granillo Martínez, E., González Velázquez, R., Bernabé Loranca, M. B., & Estrada Analco, M.** (2020).
+*A Hybrid VNS/Tabu Search Algorithm for Solving the P-Median Problem.*
+*International Journal of Combinatorial Optimization Problems and Informatics, 11*(2), 67–74.
+
+**Oksuz, M. K., Satoglu, S. I., Kayakutlu, G., & Buyukozkan, K.** (2016).
+*A Genetic Algorithm for the P-Median Facility Location Problem.*
 In *Proceedings of the International Conference on Industrial Engineering and Operations Management*, July 2016.
 
-**Rolland, E., Schilling, D. A., & Current, J. R.** (1996).  
-*An Efficient Tabu Search Procedure for the P-Median Problem.*  
-*European Journal of Operational Research, 96*(2), 329–342.  
+**Rolland, E., Schilling, D. A., & Current, J. R.** (1996).
+*An Efficient Tabu Search Procedure for the P-Median Problem.*
+*European Journal of Operational Research, 96*(2), 329–342.
 
 ## 🧾 License
 
