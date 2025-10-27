@@ -10,7 +10,7 @@ BUILD_DIR   := build
 
 # Find all the C++ files
 # Create a list of object files
-SRCS := $(shell find $(SRC_DIRS) -name '*.cpp')
+SRCS := $(shell find $(SRC_DIRS) -name '*.cpp' -not -path '*/python/*')
 OBJS := $(SRCS:$(SRC_DIRS)/%.cpp=$(BUILD_DIR)/%.o)
 
 # The final build step
