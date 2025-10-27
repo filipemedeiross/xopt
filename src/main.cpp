@@ -34,7 +34,7 @@ int main (int argc, char* argv[]) {
 
     cout << "Running "
          << restarts << " k-medoids restarts and "
-         << restarts << " random restarts..." << endl;
+         << restarts << " random restarts..."     << endl;
 
     Instance instance (argv[1]);
 
@@ -55,6 +55,8 @@ int main (int argc, char* argv[]) {
 
     vector <int> idx (n);
     iota (idx.begin(), idx.end(), 0);
+
+    shared_ptr <SolutionTrie> shared_memory = SolutionTrie::get_global_instance (n, p);
 
     for (i = 0; i < restarts; ++i) {
         shuffle (idx.begin(), idx.end(), rng);
@@ -84,26 +86,18 @@ int main (int argc, char* argv[]) {
         solutions.push_back(futures[i].get());
 
     cout << "Random initials and their results after TS:" << endl;
-    for (i = 0; i < restarts; ++i) {
-        const auto stored = solutions[i].long_term->get_all_solutions();
-
-        cout << "Restart #" << i + 1                << ": "
-             << evaluate_cost(instance, irandom[i]) << " -> "
-             << solutions[i].best.cost              << " ("
-             << stored.size()                       << " stored solutions)"
-             << endl;
-    }
+    for (i = 0; i < restarts; ++i)
+        cout << "Restart #" << i + 1                               << ": "
+             << evaluate_cost(instance, irandom[i])                << " -> "
+             << solutions[i].best.cost                             << " ("
+             << solutions[i].long_term->get_all_solutions().size() << " stored solutions)" << endl;
 
     cout << "Initial medoids and their results after TS:" << endl;
-    for (i = restarts; i < 2 * restarts; ++i) {
-        const auto stored = solutions[i].long_term->get_all_solutions();
-
-        cout << "Restart #" << i + 1               << ": "
-             << imedoids  [i - restarts].cost      << " -> "
-             << solutions [i           ].best.cost << " ("
-             << stored.size()                      << " stored solutions)"
-             << endl;
-    }
+    for (i = restarts; i < 2 * restarts; ++i)
+        cout << "Restart #" << i + 1                               << ": "
+             << imedoids  [i - restarts].cost                      << " -> "
+             << solutions [i           ].best.cost                 << " ("
+             << solutions[i].long_term->get_all_solutions().size() << " stored solutions)" << endl;
 
     sort (
         solutions.begin(),
@@ -128,10 +122,9 @@ int main (int argc, char* argv[]) {
     cout << "Isolated solution:" << endl;
     solution.best.describe();
 
-    auto stored = solution.long_term->get_all_solutions();
-
     cout << endl;
-    cout << "Long-term memory collected " << stored.size()
+    cout << "Long-term memory collected "
+         << solution.long_term->get_all_solutions().size()
          << " unique solutions."          << endl;
 
     return 0;
