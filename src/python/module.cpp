@@ -44,7 +44,12 @@ PYBIND11_MODULE (xopt, m) {
 
         .def("contains"           , &SolutionTrie::contains           , py::arg("solution"))
         .def("contains_and_update", &SolutionTrie::contains_and_update, py::arg("solution"))
-        .def("get_all_solutions"  , &SolutionTrie::get_all_solutions)
+        .def("get_all_solutions"  ,
+            [] (const SolutionTrie& trie, const Instance& instance) {
+                return trie.get_all_solutions(instance);
+            },
+            py::arg("instance")
+        )
 
         .def_static(
             "get_global_instance",

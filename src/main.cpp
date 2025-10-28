@@ -87,17 +87,17 @@ int main (int argc, char* argv[]) {
 
     cout << "Random initials and their results after TS:" << endl;
     for (i = 0; i < restarts; ++i)
-        cout << "Restart #" << i + 1                               << ": "
-             << evaluate_cost(instance, irandom[i])                << " -> "
-             << solutions[i].best.cost                             << " ("
-             << solutions[i].long_term->get_all_solutions().size() << " stored solutions)" << endl;
+        cout << "Restart #" << i + 1                                       << ": "
+             << evaluate_cost(instance, irandom[i])                        << " -> "
+             << solutions[i].best.cost                                     << " ("
+             << solutions[i].long_term->get_all_solutions(instance).size() << " stored solutions)" << endl;
 
     cout << "Initial medoids and their results after TS:" << endl;
     for (i = restarts; i < 2 * restarts; ++i)
-        cout << "Restart #" << i + 1                               << ": "
-             << imedoids  [i - restarts].cost                      << " -> "
-             << solutions [i           ].best.cost                 << " ("
-             << solutions[i].long_term->get_all_solutions().size() << " stored solutions)" << endl;
+        cout << "Restart #" << i + 1                                       << ": "
+             << imedoids  [i - restarts].cost                              << " -> "
+             << solutions [i           ].best.cost                         << " ("
+             << solutions[i].long_term->get_all_solutions(instance).size() << " stored solutions)" << endl;
 
     sort (
         solutions.begin(),
@@ -111,7 +111,7 @@ int main (int argc, char* argv[]) {
     cout << "Best solution found:" << endl;
     solutions.front().best.describe();
     cout << "Long-term memory stored "
-         << solutions.front().long_term->get_all_solutions().size()
+         << solutions.front().long_term->get_all_solutions(instance).size()
          << " solutions." << endl;
 
     shuffle (idx.begin(), idx.end(), rng);
@@ -124,7 +124,7 @@ int main (int argc, char* argv[]) {
 
     cout << endl;
     cout << "Long-term memory collected "
-         << solution.long_term->get_all_solutions().size()
+         << solution.long_term->get_all_solutions(instance).size()
          << " unique solutions."          << endl;
 
     return 0;
