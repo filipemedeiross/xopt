@@ -1,3 +1,4 @@
+#include "../pmedian/evaluate.h"
 #include "trie.h"
 
 mutex                     SolutionTrie::global_mutex;
@@ -109,20 +110,21 @@ int SolutionTrie::contains_swap(
     return ++node->visit_count;
 }
 
-vector <Solution> SolutionTrie::get_all_solutions () const {
+vector <Solution> SolutionTrie::get_all_solutions (const Instance& instance) const {
     vector <int     > current;
     vector <Solution> results;
 
     shared_lock <shared_mutex> lock(mutex);
-    dfs_collect (root, current, results);
+    dfs_collect (root, current, results, instance);
 
     return results;
 }
 
 void SolutionTrie::dfs_collect (
-    const Node*   node   ,
-    vector <int>& current,
-    vector <Solution>& results
+    const  Node*       node   ,
+    vector <int>&      current,
+    vector <Solution>& results,
+    const  Instance&   instance
 ) const {
     if (!node)
         return;
@@ -137,18 +139,18 @@ void SolutionTrie::dfs_collect (
                 facilities.push_back(i);
 
         results.push_back({
-            0.0,
+            evaluate_cost(instance, facilities),
             facilities
         });
     }
 
     if ((int) current.size() < n) {
         current.push_back(0);
-        dfs_collect(node->left , current, results);
+        dfs_collect(node->left , current, results, instance);
         current.pop_back ( );
 
         current.push_back(1);
-        dfs_collect(node->right, current, results);
+        dfs_collect(node->right, current, results, instance);
         current.pop_back ( );
     }
 }

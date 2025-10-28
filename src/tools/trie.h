@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <shared_mutex>
+#include "../pmedian/instance.h"
 #include "../pmedian/solution.h"
 
 using namespace std;
@@ -28,9 +29,10 @@ class SolutionTrie {
         static  shared_ptr <SolutionTrie> global_instance;
 
         void free_node   (Node*);
-        void dfs_collect (const Node*  ,
-                          vector <int>&,
-                          vector <Solution>&) const;
+        void dfs_collect (const Node*       ,
+                          vector <int>&     ,
+                          vector <Solution>&,
+                          const Instance&   ) const;
     public:
         SolutionTrie  (int, int);
         ~SolutionTrie ();
@@ -40,7 +42,7 @@ class SolutionTrie {
         int contains_swap       (const vector <bool>&, int, int) const;
         int contains_and_update (const vector <int>&);
 
-        vector            <Solution>     get_all_solutions   () const;
+        vector            <Solution>     get_all_solutions   (const Instance&) const;
         static shared_ptr <SolutionTrie> get_global_instance (int, int);
 };
 
