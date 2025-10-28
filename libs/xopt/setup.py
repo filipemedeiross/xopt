@@ -5,7 +5,7 @@ from pybind11.setup_helpers import build_ext, \
                                    Pybind11Extension
 
 
-ROOT    = Path(__file__).resolve().parents[1]
+ROOT    = Path(__file__).resolve().parents[2]
 SRC     = ROOT / "src"
 BINDING = SRC  / "python" / "module.cpp"
 
