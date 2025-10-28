@@ -3,6 +3,8 @@ __pycache__/
 
 # Distribution / packaging
 build/
+*.egg-info/
+.eggs/
 tspmed
 
 # Environments
