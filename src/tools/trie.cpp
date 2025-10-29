@@ -1,9 +1,6 @@
 #include "../pmedian/evaluate.h"
 #include "trie.h"
 
-mutex                     SolutionTrie::global_mutex;
-shared_ptr <SolutionTrie> SolutionTrie::global_instance = nullptr;
-
 SolutionTrie::SolutionTrie (
     int nodes  ,
     int medians
@@ -15,18 +12,6 @@ SolutionTrie::~SolutionTrie () {
     unique_lock <shared_mutex> lock(mutex);
 
     free_node(root);
-}
-
-shared_ptr <SolutionTrie> SolutionTrie::get_global_instance (
-    int nodes  ,
-    int medians
-) {
-    lock_guard <std::mutex> guard(global_mutex);
-
-    if (!global_instance)
-        global_instance = make_shared <SolutionTrie> (nodes, medians);
-
-    return global_instance;
 }
 
 void SolutionTrie::free_node (Node* node) {
@@ -47,7 +32,7 @@ vector <int> SolutionTrie::to_binary (const vector <int>& S) const {
     return bits;
 }
 
-int SolutionTrie::contains_and_update (const vector <int>& S) {
+int SolutionTrie::update (const vector <int>& S) {
     vector <int> bits = to_binary(S);
 
     unique_lock <shared_mutex> lock(mutex);

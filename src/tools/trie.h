@@ -20,13 +20,11 @@ struct Node {
 
 class SolutionTrie {
     private:
-        int n;
-        int p;
+        int   n;
+        int   p;
         Node* root;
 
         mutable shared_mutex mutex;
-        static  std::mutex   global_mutex;
-        static  shared_ptr <SolutionTrie> global_instance;
 
         void free_node   (Node*);
         void dfs_collect (const Node*       ,
@@ -37,13 +35,12 @@ class SolutionTrie {
         SolutionTrie  (int, int);
         ~SolutionTrie ();
 
-        vector <int> to_binary  (const vector <int >&          ) const;
-        int contains            (const vector <int >&          ) const;
-        int contains_swap       (const vector <bool>&, int, int) const;
-        int contains_and_update (const vector <int>&);
+        int update   (const vector <int>&);
+        int contains (const vector <int>&) const;
+        int contains_swap (const vector <bool>&, int, int) const;
 
-        vector            <Solution>     get_all_solutions   (const Instance&) const;
-        static shared_ptr <SolutionTrie> get_global_instance (int, int);
+        vector <int>      to_binary         (const vector <int>&) const;
+        vector <Solution> get_all_solutions (const Instance&    ) const;
 };
 
 #endif
