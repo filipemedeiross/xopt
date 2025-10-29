@@ -1,6 +1,7 @@
 #include <vector>
 #include <future>
 #include <random>
+#include <memory>
 #include <cstdlib>
 #include <numeric>
 #include <iostream>
@@ -15,13 +16,20 @@
 
 using namespace std;
 
+namespace {
+    vector <int> random_initial (mt19937& rng, vector <int>& indices, int p) {
+        shuffle(indices.begin(), indices.end(), rng);
+        return vector <int> (indices.begin(), indices.begin() + p);
+    }
+}
+
 int main (int argc, char* argv[]) {
     if (argc < 2) {
         cerr << "Usage: " << argv[0] << " <file_path> [restarts]" << endl;
         return 1;
     }
 
-    size_t i, restarts = 5;
+    size_t i, total_runs, restarts = 5;
 
     if (argc == 3) {
         int tmp = atoi(argv[2]);
@@ -31,6 +39,7 @@ int main (int argc, char* argv[]) {
         else
             cerr << "Invalid restarts, using default: " << restarts << endl;
     }
+    total_runs = 2 * restarts;
 
     cout << "Running "
          << restarts << " k-medoids restarts and "
@@ -42,47 +51,46 @@ int main (int argc, char* argv[]) {
     int n = instance.get_n();
     mt19937 rng(random_device{}());
 
-    vector <TSResult>          solutions;
-    vector <future <TSResult>> futures  ;
+    vector <int> indices(n);
+    iota (indices.begin(), indices.end(), 0);
 
-    solutions.reserve(2 * restarts);
-    futures  .reserve(2 * restarts);
+    vector     <TSResult>         solutions;
+    vector     <future<TSResult>> futures  ;
+    shared_ptr <SolutionTrie>     memory = make_shared <SolutionTrie> (n, p);
 
-    vector <Medoids>      imedoids = kmedoids (instance,
-                                               5       ,
-                                               restarts);
-    vector <vector <int>> irandom (restarts);
+    solutions.reserve(total_runs);
+    futures  .reserve(total_runs);
 
-    vector <int> idx (n);
-    iota (idx.begin(), idx.end(), 0);
-
-    shared_ptr <SolutionTrie> shared_memory = SolutionTrie::get_global_instance (n, p);
-
-    for (i = 0; i < restarts; ++i) {
-        shuffle (idx.begin(), idx.end(), rng);
-        irandom[i] = vector <int> (idx.begin(), idx.begin() + p);
-    }
+    vector <Medoids>      imedoids = kmedoids(instance,
+                                              5       ,
+                                              restarts);
+    vector <vector <int>> irandom(restarts);
 
     for (i = 0; i < restarts; ++i)
+        irandom[i] = random_initial (rng, indices, p);
+
+    for (i = 0; i < restarts; ++i) {
         futures.push_back(
             async(
                 launch::async,
-                [&instance, &irandom, i] () {
-                    return tspmed (instance, irandom[i]);
+                [memory, &instance, &irandom, i] () {
+                    return tspmed (instance, irandom[i], 2, memory);
                 }
             )
         );
-    for (i = 0; i < restarts; i++)
+    }
+    for (i = 0; i < restarts; i++) {
         futures.push_back(
             async (
                 launch::async,
-                [&instance, &imedoids, i] () {
-                    return tspmed (instance, imedoids[i].medoids);
+                [memory, &instance, &imedoids, i] () {
+                    return tspmed (instance, imedoids[i].medoids, 2, memory);
                 }
             )
         );
+    }
 
-    for (i = 0; i < 2 * restarts; i++)
+    for (i = 0; i < total_runs; i++)
         solutions.push_back(futures[i].get());
 
     cout << "Random initials and their results after TS:" << endl;
@@ -93,7 +101,7 @@ int main (int argc, char* argv[]) {
              << solutions[i].long_term->get_all_solutions(instance).size() << " stored solutions)" << endl;
 
     cout << "Initial medoids and their results after TS:" << endl;
-    for (i = restarts; i < 2 * restarts; ++i)
+    for (i = restarts; i < total_runs; ++i)
         cout << "Restart #" << i + 1                                       << ": "
              << imedoids  [i - restarts].cost                              << " -> "
              << solutions [i           ].best.cost                         << " ("
@@ -107,21 +115,23 @@ int main (int argc, char* argv[]) {
         }
     );
 
+    TSResult best_sol = solutions.front();
+
     cout << endl;
     cout << "Best solution found:" << endl;
-    solutions.front().best.describe();
+
+    best_sol.best.describe();
     cout << "Long-term memory stored "
-         << solutions.front().long_term->get_all_solutions(instance).size()
+         << best_sol.long_term->get_all_solutions(instance).size()
          << " solutions." << endl;
 
-    shuffle (idx.begin(), idx.end(), rng);
-    vector <int> initial (idx.begin(), idx.begin() + p);
+    vector <int> initial  = random_initial (rng, indices, p);
     TSResult     solution = tspmed (instance, initial);
 
     cout << endl;
     cout << "Isolated solution:" << endl;
-    solution.best.describe();
 
+    solution.best.describe();
     cout << endl;
     cout << "Long-term memory collected "
          << solution.long_term->get_all_solutions(instance).size()
