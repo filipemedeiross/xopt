@@ -18,6 +18,9 @@ struct TSResult {
     TSResult (shared_ptr <SolutionTrie> st) : long_term (move(st)) {}
 };
 
-TSResult tspmed (const Instance&, const vector <int>&, int = 2);
+TSResult tspmed (const Instance&    ,
+                 const vector <int>&,
+                 int = 2,
+                 shared_ptr <SolutionTrie> = nullptr);
 
 #endif

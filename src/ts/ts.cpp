@@ -1,6 +1,7 @@
 #include <vector>
 #include <random>
 #include <limits>
+#include <memory>
 #include <algorithm>
 
 #include "../pmedian/instance.h"
@@ -13,7 +14,12 @@ using namespace std;
 
 constexpr double EPSILON = 1e-9;
 
-TSResult tspmed (const Instance& instance, const vector <int>& medoids, int iter_factor) {
+TSResult tspmed (
+    const Instance&           instance   ,
+    const vector <int>&       medoids    ,
+    int                       iter_factor,
+    shared_ptr <SolutionTrie> long_term
+) {
     int    iter, last;
     int    idx, out, in;
     int    best_in, best_out;
@@ -36,10 +42,12 @@ TSResult tspmed (const Instance& instance, const vector <int>& medoids, int iter
     Evaluation eval = evaluate(instance, S);
     best_cost       = eval.cost;
 
-    TSResult result (SolutionTrie::get_global_instance (n, p));
+    TSResult result (long_term ?
+                     long_term :
+                     make_shared <SolutionTrie> (n, p));
 
     vector <int>              time (n, -p);
-    shared_ptr <SolutionTrie> long_term = result.long_term;
+    shared_ptr <SolutionTrie> memory = result.long_term;
 
     vector <bool> in_solution(n, false);
     for (int v : S)
@@ -58,7 +66,7 @@ TSResult tspmed (const Instance& instance, const vector <int>& medoids, int iter
             for (in = 0; in < n; in++) {
                 if (in_solution[in])
                     continue;
-                if (long_term->contains_swap(in_solution, out, in))
+                if (memory->contains_swap(in_solution, out, in))
                     continue;
 
                 candidate_cost = evaluate_swap(instance, eval, out, in);
@@ -82,7 +90,7 @@ TSResult tspmed (const Instance& instance, const vector <int>& medoids, int iter
 
         if (best_move_cost >= eval.cost &&
             best_tabu_cost >= eval.cost)
-            long_term->contains_and_update(S);
+            memory->update(S);
 
         *ranges::find(S, best_out) = best_in;
 
