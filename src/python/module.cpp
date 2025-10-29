@@ -49,13 +49,6 @@ PYBIND11_MODULE (xopt, m) {
                 return trie.get_all_solutions(instance);
             },
             py::arg("instance")
-        )
-
-        .def_static(
-            "get_global_instance",
-            &SolutionTrie::get_global_instance,
-            py::arg("n"),
-            py::arg("p")
         );
 
     py::class_<TSResult> (m, "TSResult")
@@ -77,6 +70,7 @@ PYBIND11_MODULE (xopt, m) {
         &tspmed ,
         py::arg("instance"),
         py::arg("medoids" ),
-        py::arg("iter_factor") = 2
+        py::arg("iter_factor") = 2,
+        py::arg("long_term")
     );
 }
