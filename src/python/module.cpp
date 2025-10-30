@@ -1,4 +1,5 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
 
 #include "../pmedian/instance.h"
@@ -22,9 +23,23 @@ PYBIND11_MODULE (xopt, m) {
         .def("floyd_warshall", &Instance::floyd_warshall)
         .def("describe"      , &Instance::describe      )
 
-        .def("get_n"   , &Instance::get_n)
-        .def("get_p"   , &Instance::get_p)
-        .def("__call__", &Instance::operator(), py::arg("i"), py::arg("j"));
+        .def("get_n", &Instance::get_n)
+        .def("get_p", &Instance::get_p)
+        .def("__getitem__",
+            [] (const Instance& instance, py::tuple idx) {
+                if (idx.size() != 2)
+                    throw py::index_error("Instance indices must be a pair (i, j)");
+
+                int i = idx[0].cast <int> ();
+                int j = idx[1].cast <int> ();
+
+                if (i < 0 || i >= instance.get_n() ||
+                    j < 0 || j >= instance.get_n())
+                    throw py::index_error("Instance index out of range");
+
+                return instance(i, j);
+            }
+        );
 
     py::class_<Solution> (m, "Solution")
         .def(py::init <> ())
