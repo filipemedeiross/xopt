@@ -24,24 +24,22 @@ void SolutionTrie::free_node (Node* node) {
     delete node;
 }
 
-vector <int> SolutionTrie::to_binary (const vector <int>& S) const {
+int SolutionTrie::update (const vector <int>& S) {
     vector <int> bits(n, 0);
     for (int v : S)
         bits[v] = 1;
 
-    return bits;
+    return update_mask(bits);
 }
 
-int SolutionTrie::update (const vector <int>& S) {
-    vector <int> bits = to_binary(S);
-
+int SolutionTrie::update_mask (const vector <int>& bits) {
     unique_lock <shared_mutex> lock(mutex);
 
     Node* node = root;
     for (int bit : bits) {
-        Node*& next = (bit == 0   ?
-                       node->left :
-                       node->right);
+        Node*& next = bit         ?
+                      node->right :
+                      node->left;
         if (!next)
             next = new Node();
 
@@ -52,14 +50,21 @@ int SolutionTrie::update (const vector <int>& S) {
 }
 
 int SolutionTrie::contains (const vector <int>& S) const {
-    vector <int> bits = to_binary(S);
+    vector <int> bits(n, 0);
+    for (int v : S)
+        bits[v] = 1;
 
+    return contains_mask(bits);
+}
+
+int SolutionTrie::contains_mask (const vector <int>& bits) const {
     unique_lock <shared_mutex> lock(mutex);
+
     const Node* node = root;
     for (int bit : bits) {
-        node = (bit == 0   ?
-                node->left :
-                node->right);
+        node = bit         ?
+               node->right :
+               node->left;
 
         if (!node)
             return 0;
@@ -69,25 +74,26 @@ int SolutionTrie::contains (const vector <int>& S) const {
 }
 
 int SolutionTrie::contains_swap(
-    const vector <bool>& in_solution,
+    const vector <int>& in_solution,
     int out,
     int in
 ) const {
+    unique_lock <shared_mutex> lock(mutex);
+
     int i, bit;
     const Node* node = root;
 
-    unique_lock <shared_mutex> lock(mutex);
     for (i = 0; i < n; i++) {
-        if      (i == out)
+        if (i == out)
             bit = 0;
-        else if (i == in )
+        else if (i == in)
             bit = 1;
         else
-            bit = in_solution[i] ? 1 : 0;
+            bit = in_solution[i];
 
-        node = (bit == 0   ?
-                node->left :
-                node->right);
+        node = bit         ?
+               node->right :
+               node->left;
         if (!node)
             return 0;
     }
