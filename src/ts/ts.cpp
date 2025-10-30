@@ -49,9 +49,9 @@ TSResult tspmed (
     vector <int>              time (n, -p);
     shared_ptr <SolutionTrie> memory = result.long_term;
 
-    vector <bool> in_solution(n, false);
+    vector <int> in_solution(n, 0);
     for (int v : S)
-        in_solution[v] = true;
+        in_solution[v] = 1;
 
     last = iter = 0;
     while ((iter - last) < stable_iter && iter < max_iter) {
@@ -90,7 +90,7 @@ TSResult tspmed (
 
         if (best_move_cost >= eval.cost &&
             best_tabu_cost >= eval.cost)
-            memory->update(S);
+            memory->update_mask(in_solution);
 
         *ranges::find(S, best_out) = best_in;
 
@@ -98,7 +98,7 @@ TSResult tspmed (
                            S       ,
                            best_out,
                            best_in ,
-                           eval);
+                           eval    );
         if (eval.cost + EPSILON < best_cost) {
             best_S    = S;
             best_cost = eval.cost;
@@ -106,8 +106,8 @@ TSResult tspmed (
             last = iter;
         }
 
-        in_solution[best_out] = false;
-        in_solution[best_in ] = true;
+        in_solution[best_out] = 0;
+        in_solution[best_in ] = 1;
         time       [best_out] = iter;
 
         if ((iter - last + 1) % span_tenure == 0)

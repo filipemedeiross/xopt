@@ -35,12 +35,13 @@ class SolutionTrie {
         SolutionTrie  (int, int);
         ~SolutionTrie ();
 
-        int update   (const vector <int>&);
-        int contains (const vector <int>&) const;
-        int contains_swap (const vector <bool>&, int, int) const;
+        int update        (const vector <int>&);
+        int update_mask   (const vector <int>&);
+        int contains      (const vector <int>&) const;
+        int contains_mask (const vector <int>&) const;
+        int contains_swap (const vector <int>&, int, int) const;
 
-        vector <int>      to_binary         (const vector <int>&) const;
-        vector <Solution> get_all_solutions (const Instance&    ) const;
+        vector <Solution> get_all_solutions (const Instance&) const;
 };
 
 #endif
