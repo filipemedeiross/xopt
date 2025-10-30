@@ -103,8 +103,8 @@ int main (int argc, char* argv[]) {
     cout << "Initial medoids and their results after TS:" << endl;
     for (i = restarts; i < total_runs; ++i)
         cout << "Restart #" << i + 1                                       << ": "
-             << imedoids  [i - restarts].cost                              << " -> "
-             << solutions [i           ].best.cost                         << " ("
+             << imedoids [i - restarts].cost                               << " -> "
+             << solutions[i           ].best.cost                          << " ("
              << solutions[i].long_term->get_all_solutions(instance).size() << " stored solutions)" << endl;
 
     sort (
