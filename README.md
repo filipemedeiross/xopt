@@ -20,6 +20,10 @@ Applications include:
 *Simulated Annealing Metaheuristic for Solving P-Median Problem.*
 *International Journal of Contemporary Mathematical Sciences, 3*(28), 1357–1365.
 
+**Arostegui Jr., M. A., Kadipasaoglu, S. N., & Khumawala, B. M.** (2006).
+*An empirical comparison of Tabu Search, Simulated Annealing, and Genetic Algorithms for facilities location problems.*
+*International Journal of Production Economics, 103*(2), 742–754.
+
 **Barut, C., Yildirim, G., & Tatar, Y.** (2024).
 *An Intelligent and Interpretable Rule-Based Metaheuristic Approach to Task Scheduling in Cloud Systems.*
 *Knowledge-Based Systems, 284*, 111241.
