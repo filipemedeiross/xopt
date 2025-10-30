@@ -42,9 +42,11 @@ PYBIND11_MODULE (xopt, m) {
     py::class_<SolutionTrie, std::shared_ptr <SolutionTrie>> (m, "SolutionTrie")
         .def(py::init <int, int> (), py::arg("n"), py::arg("p"))
 
-        .def("contains"           , &SolutionTrie::contains           , py::arg("solution"))
-        .def("contains_and_update", &SolutionTrie::contains_and_update, py::arg("solution"))
-        .def("get_all_solutions"  ,
+        .def("update"       , &SolutionTrie::update       , py::arg("solution"))
+        .def("update_mask"  , &SolutionTrie::update_mask  , py::arg("mask"    ))
+        .def("contains"     , &SolutionTrie::contains     , py::arg("solution"))
+        .def("contains_mask", &SolutionTrie::contains_mask, py::arg("mask"    ))
+        .def("get_all_solutions",
             [] (const SolutionTrie& trie, const Instance& instance) {
                 return trie.get_all_solutions(instance);
             },
