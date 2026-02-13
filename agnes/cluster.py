@@ -22,7 +22,21 @@ class Cluster:
         if self.l.shape[1] != self.L:
             raise ValueError("L must match l.shape[1]")
 
-    def __and__(self, other: Cluster) -> int:
+    def __add__(self, other: Cluster) -> List[int]:
+        seen = set()
+        out  = []
+
+        for x in self.v + other.v:
+            if x not in seen:
+                seen.add   (x)
+                out .append(x)
+
+        return out
+
+    def __and__(self, other: Cluster) -> csr_matrix:
+        return self.l.multiply(other.l)
+
+    def __matmul__(self, other: Cluster) -> int:
         if not isinstance(other, Cluster):
             return NotImplemented
 
@@ -31,14 +45,14 @@ class Cluster:
 
         return int((self.l @ other.l.T).toarray()[0, 0])
 
-    def __sub__(self, other: Cluster) -> float:
+    def __sub__(self, other: Cluster) -> int:
         if not isinstance(other, Cluster):
             return NotImplemented
 
-        return int(self.L - (self & other))
+        return int(self.L - (self @ other))
 
     def similarity(self, other: Cluster) -> int:
-        return self & other
+        return self @ other
 
     def distance  (self, other: Cluster) -> int:
         return self - other
