@@ -16,7 +16,7 @@ def list2matrix(adj_list, n, l):
 
     matrix = (data, (rows, cols))
 
-    return csr_matrix(matrix, shape=(n, l), dtype='uint8')
+    return csr_matrix(matrix, shape=(n, l), dtype='uint32')
 
 
 def normalize_linkage(L):
