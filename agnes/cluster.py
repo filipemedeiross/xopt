@@ -1,14 +1,47 @@
-from typing      import List
-from dataclasses import dataclass
+from __future__ import annotations
 
+from typing       import List
+from dataclasses  import dataclass
 from scipy.sparse import csr_matrix
 
 
 @dataclass(slots=True, eq=False)
 class Cluster:
     id: int
+    L : int         # number of resources
     v : List[int]   # vertices in the cluster
     l : csr_matrix  # shared-resource intersection
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.l, csr_matrix):
+            raise TypeError("l must be a csr_matrix")
+
+        if self.l.shape[0] != 1:
+            raise ValueError("l must have shape (1, L)")
+
+        if self.l.shape[1] != self.L:
+            raise ValueError("L must match l.shape[1]")
+
+    def __and__(self, other: Cluster) -> int:
+        if not isinstance(other, Cluster):
+            return NotImplemented
+
+        if self.L != other.L:
+            raise ValueError("Clusters must share the same universe size L")
+
+        return int((self.l @ other.l.T).toarray()[0, 0])
+
+    def __sub__(self, other: Cluster) -> float:
+        if not isinstance(other, Cluster):
+            return NotImplemented
+
+        return int(self.L - (self & other))
+
+    def similarity(self, other: Cluster) -> int:
+        return self & other
+
+    def distance  (self, other: Cluster) -> int:
+        return self - other
 
 
 class UnionFind:
