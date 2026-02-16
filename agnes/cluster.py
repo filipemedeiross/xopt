@@ -6,7 +6,6 @@ from scipy.sparse import csr_matrix
 
 @dataclass(slots=True, eq=False)
 class Cluster:
-    id: int
     v : set[int]    # vertices in the cluster
     l : csr_matrix  # shared-resource intersection
 
@@ -22,6 +21,12 @@ class Cluster:
 
     def __and__(self, other: Cluster) -> csr_matrix:
         return self.l.multiply(other.l)
+
+    def __or__(self, other: Cluster) -> Cluster:
+        if not isinstance(other, Cluster):
+            return NotImplemented
+
+        return Cluster(self + other, self & other)
 
     def __matmul__(self, other: Cluster) -> int:
         if not isinstance(other, Cluster):
