@@ -2,6 +2,14 @@ import numpy as np
 
 from scipy.sparse import csr_matrix
 
+from .cluster import Cluster
+
+
+def distance(a: Cluster,
+             b: Cluster,
+             size: int ) -> int:
+    return int(size - a.similarity(b))
+
 
 def list2matrix(adj_list, n, l):
     rows = []
