@@ -28,11 +28,13 @@ def list2matrix(adj_list, n, l):
 
 
 def normalize_linkage(L):
-    canonical = L       .copy ()
-    children  = L[:, :2].ravel()
+    canonical = L.copy()
+    children  = L[:, :2]
 
-    argsort = np.argsort(children)
-    indices = np.argsort(argsort )
+    flat = children.ravel()
+
+    argsort = np.argsort(flat   )
+    indices = np.argsort(argsort)
 
     canonical[:, :2] = indices.reshape(children.shape)
 
