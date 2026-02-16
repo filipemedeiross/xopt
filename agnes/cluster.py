@@ -8,7 +8,6 @@ from scipy.sparse import csr_matrix
 @dataclass(slots=True, eq=False)
 class Cluster:
     id: int
-    L : int         # number of resources
     v : List[int]   # vertices in the cluster
     l : csr_matrix  # shared-resource intersection
 
@@ -18,9 +17,6 @@ class Cluster:
 
         if self.l.shape[0] != 1:
             raise ValueError("l must have shape (1, L)")
-
-        if self.l.shape[1] != self.L:
-            raise ValueError("L must match l.shape[1]")
 
     def __add__(self, other: Cluster) -> List[int]:
         seen = set()
@@ -40,22 +36,13 @@ class Cluster:
         if not isinstance(other, Cluster):
             return NotImplemented
 
-        if self.L != other.L:
+        if self.l.shape[1] != other.l.shape[1]:
             raise ValueError("Clusters must share the same universe size L")
 
         return int((self.l @ other.l.T).toarray()[0, 0])
 
-    def __sub__(self, other: Cluster) -> int:
-        if not isinstance(other, Cluster):
-            return NotImplemented
-
-        return int(self.L - (self @ other))
-
     def similarity(self, other: Cluster) -> int:
         return self @ other
-
-    def distance  (self, other: Cluster) -> int:
-        return self - other
 
 
 class UnionFind:
