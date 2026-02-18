@@ -1,12 +1,20 @@
+import heapq
 import numpy as np
 
+from itertools    import count
 from scipy.sparse import csr_matrix
 
 from .cluster import Cluster , UnionFind
 from .tools   import distance, list2matrix
 
 
-def agnes(adj_list, n, l, thresh=None):
+def agnes(bigraph, thresh=None):
+    entry_counter = count()
+
+    n        = bigraph.N
+    l        = bigraph.L
+    adj_list = bigraph.adj_list
+
     adj_matrix = list2matrix(adj_list, n, l)
 
     C = {
@@ -15,18 +23,31 @@ def agnes(adj_list, n, l, thresh=None):
         )
         for v, adj in enumerate(adj_matrix)
     }
-    D = [
-        (
-            i, j, distance(C[i], C[j], l)
-        )
-        for i in range(n)
-        for j in range(i + 1, n)
-    ]
+
+    D = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            heapq.heappush(
+                D,
+                (
+                    distance(C[i], C[j], l),
+                    next    (entry_counter),
+                    i,
+                    j,
+                )
+            )
+
     F = UnionFind(2 * n - 1)
 
     L = []
     for v in range(n, 2 * n - 1):
-        k, m, d = min(D, key=lambda x: x[2])
+        while D:
+            d, _, k, m = heapq.heappop(D)
+
+            if k in C and m in C:
+                break
+        else:
+            break
 
         if thresh and thresh > (l - d):
             break
@@ -39,19 +60,21 @@ def agnes(adj_list, n, l, thresh=None):
 
         del C[k], C[m]
 
-        D = [
-            candidate
-            for candidate in D
-            if not any(c in (k, m) for c in candidate[:2])
-        ]
-
         for u, C_u in C.items():
-            D.append((u, v, distance(C_u, C_v, l)))
+            heapq.heappush(
+                D,
+                (
+                    distance(C_u, C_v, l  ),
+                    next    (entry_counter),
+                    u,
+                    v,
+                )
+            )
 
         C[v] = C_v
 
-        F.union(k, m)
-        F.union(k, v)
+        F.union(v, k)
+        F.union(v, m)
 
     roots = []
     for v in range(n, 2 * n - 1):
