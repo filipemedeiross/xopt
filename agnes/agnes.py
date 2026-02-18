@@ -3,6 +3,7 @@ import numpy as np
 
 from itertools    import count
 from scipy.sparse import csr_matrix
+from collections  import defaultdict
 
 from .cluster import Cluster , UnionFind
 from .tools   import distance, list2matrix
@@ -76,21 +77,14 @@ def agnes(bigraph, thresh=None):
         F.union(v, k)
         F.union(v, m)
 
-    roots = []
-    for v in range(n, 2 * n - 1):
-        root_v = F.find(v)
+    clusters = defaultdict(list)
 
-        if v != root_v:
-            roots.append(root_v)
+    for v, step in enumerate(L, start=n):
+        root = F.find(v)
 
-    Ls = []
-    for v in np.unique(roots):
-        cluster = []
+        clusters[root].append(step)
 
-        for pos, step in enumerate(L):
-            if roots[pos] == v:
-                cluster.append(step)
-
-        Ls.append(np.array(cluster, dtype='float64'))
-
-    return Ls
+    return [
+        np.asarray(steps, dtype=np.float64)
+        for _, steps in sorted(clusters.items())
+    ]
