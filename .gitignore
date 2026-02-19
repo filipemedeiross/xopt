@@ -3,12 +3,15 @@ __pycache__/
 
 # Distribution / packaging
 build/
-*.egg-info/
 .eggs/
+*.egg-info/
+
+# Executable files
 tspmed
 
 # Environments
 .venv
 
-# Visual Studio Code
+# Visual Studio Code and Jupyter Notebooks
 .vscode/
+.ipynb_checkpoints/
