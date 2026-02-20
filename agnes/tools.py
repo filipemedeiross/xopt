@@ -27,6 +27,16 @@ def list2matrix(adj_list, n, l):
     return csr_matrix(matrix, shape=(n, l), dtype='uint32')
 
 
+def vertex2linkage(v: int, linkages):
+    for idx, linkage in enumerate(linkages):
+        children = linkage[:, :2].astype(np.int64, copy=False)
+
+        if (children == v).any():
+            return idx
+
+    return None
+
+
 def normalize_linkage(L):
     canonical = L.copy()
     children  = L[:, :2]
