@@ -26,8 +26,9 @@ def dendrogram(Ls, n, l, format_labels=None):
         indices = L[:, :2].copy   ()
         flat    = indices .flatten()
 
-        x_min  = indices.min() - 1
-        x_max  = indices.max() + 1
+        x_min  = L[:, 2].min() - 1
+        x_max  = L[:, 2].max() + 1
+
         labels = [
             label(i)
             for i in np.sort(flat[flat < n])
