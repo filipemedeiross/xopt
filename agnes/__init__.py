@@ -6,9 +6,9 @@ from .tools      import vertex2linkage
 
 
 __all__ = [
-    agnes         ,
-    BiGraph       ,
-    UnionFind     ,
-    dendrogram    ,
-    vertex2linkage,
+    "agnes"         ,
+    "BiGraph"       ,
+    "UnionFind"     ,
+    "dendrogram"    ,
+    "vertex2linkage",
 ]
