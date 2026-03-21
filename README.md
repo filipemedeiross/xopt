@@ -64,6 +64,9 @@ Boston: Kluwer Academic Publishers.
 *A Genetic Algorithm for the P-Median Facility Location Problem.*
 In *Proceedings of the International Conference on Industrial Engineering and Operations Management*, July 2016.
 
+**Otto, D., Kurtz, J., & Birbil, İ.** (2025).
+*Coherent Local Explanations for Mathematical Optimization.*
+
 **Rolland, E., Schilling, D. A., & Current, J. R.** (1996).
 *An Efficient Tabu Search Procedure for the P-Median Problem.*
 *European Journal of Operational Research, 96*(2), 329–342.
