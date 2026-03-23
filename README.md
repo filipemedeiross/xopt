@@ -16,6 +16,10 @@ Applications include:
 
 ## 📚 References
 
+**Aigner, K.-M., Goerigk, M., Hartisch, M., Liers, F., & Miehlich, A.** (2024).
+*A Framework for Data-Driven Explainability in Mathematical Optimization.*
+*Proceedings of the AAAI Conference on Artificial Intelligence, 38*(19), 20912–20920.
+
 **Alkhedhairi, A.** (2008).
 *Simulated Annealing Metaheuristic for Solving P-Median Problem.*
 *International Journal of Contemporary Mathematical Sciences, 3*(28), 1357–1365.
