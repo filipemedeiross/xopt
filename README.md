@@ -48,6 +48,10 @@ Boston: Kluwer Academic Publishers.
 *A Framework for Inherently Interpretable Optimization Models.*
 *European Journal of Operational Research, 310*(3), 1312–1324.
 
+**Kurtz, J., Birbil, Ş. İ., & den Hertog, D.** (2026).
+*Counterfactual Explanations for Linear Optimization.*
+*European Journal of Operational Research, 329*, 24–41.
+
 **Loranca, Maria B. B., González Velázquez, R., & Estrada Analco, M.** (2015).
 *The P-Median Problem: A Tabu Search Approximation Proposal Applied to Districts.*
 *Journal of Mathematics and System Science, 5*(3), 100–112.
