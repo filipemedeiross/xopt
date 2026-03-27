@@ -5,7 +5,7 @@ import scipy.cluster.hierarchy as scipy
 from .tools import normalize_linkage
 
 
-def dendrogram(Ls, n, l, format_labels=None):
+def dendrogram(Ls, n, l, format_labels=None, ax=None):
     '''
     Recebe  -> lista de linkages e os valores de N e L para a instância
     Retorna -> lista de objetos Figure, cada qual representando um cluster
@@ -18,9 +18,9 @@ def dendrogram(Ls, n, l, format_labels=None):
     else:
         label = lambda x: f'X{int(x)}'
 
-    figs = []
+    outputs = []
 
-    for L in Ls:
+    for i, L in enumerate(Ls):
         linkage = normalize_linkage(L)
 
         indices = L[:, :2].copy   ()
@@ -34,15 +34,27 @@ def dendrogram(Ls, n, l, format_labels=None):
             for i in np.sort(flat[flat < n])
         ]
 
-        fig, _ = plt.subplots()
+        if ax is None:
+            fig, current_ax = plt.subplots()
+        elif isinstance(ax, (list, np.ndarray)):
+            current_ax = ax[i]
+            fig        = current_ax.figure
+        else:
+            current_ax = ax
+            fig        = current_ax.figure
 
         scipy.dendrogram(linkage,
-                         labels     =labels ,
-                         orientation='right')
+                         labels     =labels    ,
+                         orientation='right'   ,
+                         ax         =current_ax)
 
-        plt.xlim  ((x_min, x_max))
-        plt.xticks(plt.xticks()[0], l - plt.xticks()[0])
+        current_ax.set_xlim((x_min, x_max))
 
-        figs.append(fig)
+        xticks = current_ax.get_xticks()
 
-    return figs
+        current_ax.set_xticks     (xticks    )
+        current_ax.set_xticklabels(l - xticks)
+
+        outputs.append((fig, current_ax))
+
+    return outputs
