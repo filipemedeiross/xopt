@@ -1,6 +1,8 @@
 import numpy  as np
 import pandas as pd
 
+from .utils import finite_or_none
+
 
 def compute_gap_percent(
     cost            : float | None,
@@ -15,3 +17,48 @@ def compute_gap_percent(
         return np.nan
 
     return 100.0 * (float(cost) - float(best_known_cost)) / float(best_known_cost)
+
+
+def gap_to_reference_percent(
+    value     : float | int | None,
+    reference : float | int | None,
+) -> float | None:
+    value     = finite_or_none(value    )
+    reference = finite_or_none(reference)
+
+    if value     is None or \
+       reference is None or \
+       reference == 0:
+        return None
+
+    return 100.0 * (value - reference) / reference
+
+
+def gap_to_bound_percent(
+    objective_value : float | int | None,
+    objective_bound : float | int | None,
+) -> float | None:
+    objective_value = finite_or_none(objective_value)
+    objective_bound = finite_or_none(objective_bound)
+
+    if objective_value is None or \
+       objective_bound is None or \
+       objective_value == 0:
+        return None
+
+    return 100.0 * (objective_value - objective_bound) / objective_value
+
+
+def speedup_factor(
+    baseline_seconds  : float | int | None,
+    candidate_seconds : float | int | None,
+) -> float | None:
+    baseline_seconds  = finite_or_none(baseline_seconds )
+    candidate_seconds = finite_or_none(candidate_seconds)
+
+    if baseline_seconds  is None or \
+       candidate_seconds is None or \
+       candidate_seconds <= 0:
+        return None
+
+    return baseline_seconds / candidate_seconds
