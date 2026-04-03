@@ -98,3 +98,20 @@ def load_best_known_costs_to_dict(
         best_known_costs[f'{instance_id}.txt'] = int(value)
 
     return best_known_costs
+
+
+def load_best_known_costs_to_dict_id(
+    pmedopt_path: Path
+) -> dict[str, float]:
+    rows = {}
+
+    for raw_line in pmedopt_path.read_text().splitlines()[1:]:
+        line = raw_line.strip()
+
+        if not line:
+            continue
+
+        instance_id, value = line.split()[:2]
+        rows[instance_id]  = float(value)
+
+    return rows

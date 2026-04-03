@@ -15,6 +15,19 @@ def parse_optional_int_env(name: str) -> int | None:
     return int(raw_value)
 
 
+def parse_optional_float_env(name: str) -> float | None:
+    raw_value = os.getenv(name)
+
+    if raw_value is None:
+        return None
+
+    raw_value = raw_value.strip()
+    if not raw_value:
+        return None
+
+    return float(raw_value)
+
+
 def finite_or_none(
     value: float | int | None
 ) -> float | None:
