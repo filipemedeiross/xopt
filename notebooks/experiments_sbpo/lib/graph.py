@@ -1,5 +1,7 @@
 import heapq
-import numpy as np
+
+import numpy    as np
+import networkx as nx
 
 from pathlib import Path
 
@@ -87,3 +89,88 @@ def all_pairs_shortest_paths(
             )
 
     return distances.astype(np.int64)
+
+
+def build_top_ltm(
+    long_term_memory : list[dict[str, object]],
+    top_fraction     : float                  ,
+) -> tuple[list[dict[str, object]], np.ndarray, np.ndarray]:
+    if not long_term_memory:
+        raise ValueError("long_term_memory is empty.")
+
+    top_solution_count = max(
+        1, int(np.ceil(len(long_term_memory) * top_fraction))
+    )
+
+    analysis_ltm = sorted(
+        long_term_memory, key=lambda sol: float(sol["cost"])
+    )[:top_solution_count]
+
+    matrix = np.vstack(
+        [
+            np.asarray(
+                sol["facilities"], dtype=np.int8
+            )
+            for sol in analysis_ltm
+        ]
+    )
+
+    costs = np.asarray(
+        [
+            float(sol["cost"])
+            for sol in analysis_ltm
+        ],
+        dtype=float,
+    )
+
+    return analysis_ltm, matrix, costs
+
+
+def build_cooccurrence_matrix(matrix: np.ndarray) -> np.ndarray:
+    adjacency = np.asarray(
+        matrix.T @ matrix, dtype=np.int64
+    )
+
+    np.fill_diagonal(adjacency, 0)
+
+    return adjacency
+
+
+def build_weighted_graph(adjacency: np.ndarray) -> nx.Graph:
+    n = adjacency.shape[0]
+
+    graph = nx.Graph()
+    graph.add_nodes_from(range(n))
+
+    rows, cols = np.where(np.triu(adjacency, k=1) > 0)
+
+    for i, j in zip(rows.tolist(), cols.tolist()):
+        graph.add_edge(
+            int(i), int(j), weight=float(adjacency[i, j])
+        )
+
+    return graph
+
+
+def build_unweighted_graph(adjacency: np.ndarray) -> nx.Graph:
+    n = adjacency.shape[0]
+
+    graph = nx.Graph()
+    graph.add_nodes_from(range(n))
+
+    rows, cols = np.where(np.triu(adjacency, k=1) > 0)
+
+    graph.add_edges_from(
+        (int(i), int(j))
+        for i, j in zip(rows.tolist(), cols.tolist())
+    )
+
+    return graph
+
+
+def total_edge_weight(adjacency: np.ndarray) -> float:
+    return float(np.triu(adjacency, k=1).sum())
+
+
+def total_edge_count(adjacency: np.ndarray) -> int:
+    return int(np.count_nonzero(np.triu(adjacency, k=1) > 0))
