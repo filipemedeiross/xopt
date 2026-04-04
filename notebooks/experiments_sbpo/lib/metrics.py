@@ -1,7 +1,21 @@
 import numpy  as np
 import pandas as pd
 
-from .utils import finite_or_none
+from .utils import finite_or_none, as_sorted_tuple
+
+
+def compute_solution_cost(
+    distances      : np.ndarray                 ,
+    open_facilities: tuple[int, ...] | list[int],
+) -> int | None:
+    open_facilities = list(as_sorted_tuple(open_facilities))
+
+    if not open_facilities:
+        return None
+
+    return int(
+        distances[:, open_facilities].min(axis=1).sum()
+    )
 
 
 def compute_gap_percent(

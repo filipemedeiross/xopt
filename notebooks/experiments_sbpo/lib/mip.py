@@ -14,6 +14,19 @@ def extract_open_facilities(
     ]
 
 
+def extract_open_facilities_candidates(
+    candidate_facilities: list[int],
+    y                   : list     ,
+    *,
+    threshold: float = 0.5,
+) -> list[int]:
+    return [
+        facility
+        for facility, variable in zip(candidate_facilities, y)
+        if  variable.x is not None and variable.x >= threshold
+    ]
+
+
 def compute_solution_cost(
     distances       : np.ndarray,
     open_facilities : list[int] ,
