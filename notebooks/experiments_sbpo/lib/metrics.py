@@ -34,19 +34,19 @@ def gap_to_reference_percent(
     return 100.0 * (value - reference) / reference
 
 
-def gap_to_bound_percent(
-    objective_value : float | int | None,
-    objective_bound : float | int | None,
-) -> float | None:
-    objective_value = finite_or_none(objective_value)
-    objective_bound = finite_or_none(objective_bound)
+def improvement_percent(
+    baseline  : float | int | None,
+    candidate : float | int | None,
+) -> float:
+    baseline  = finite_or_none(baseline )
+    candidate = finite_or_none(candidate)
 
-    if objective_value is None or \
-       objective_bound is None or \
-       objective_value == 0:
-        return None
+    if baseline  is None or \
+       candidate is None or \
+       baseline == 0.0:
+        return np.nan
 
-    return 100.0 * (objective_value - objective_bound) / objective_value
+    return 100.0 * (baseline - candidate) / baseline
 
 
 def speedup_factor(
