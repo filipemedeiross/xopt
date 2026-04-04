@@ -55,3 +55,7 @@ def normalize_number(
         return int(round(value))
 
     return round(value, digits)
+
+
+def as_sorted_tuple(values) -> tuple[int, ...]:
+    return tuple(sorted({int(value) for value in values}))
