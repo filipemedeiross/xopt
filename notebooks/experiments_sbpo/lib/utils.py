@@ -59,3 +59,21 @@ def normalize_number(
 
 def as_sorted_tuple(values) -> tuple[int, ...]:
     return tuple(sorted({int(value) for value in values}))
+
+
+def format_facilities(values) -> str:
+    facilities = as_sorted_tuple(values)
+
+    if not facilities:
+        return ""
+
+    return " ".join(str(value) for value in facilities)
+
+
+def format_groups(groups) -> str:
+    if not groups:
+        return ""
+
+    return " | ".join(
+        format_facilities(group) for group in groups
+    )
