@@ -61,18 +61,3 @@ def improvement_percent(
         return np.nan
 
     return 100.0 * (baseline - candidate) / baseline
-
-
-def speedup_factor(
-    baseline_seconds  : float | int | None,
-    candidate_seconds : float | int | None,
-) -> float | None:
-    baseline_seconds  = finite_or_none(baseline_seconds )
-    candidate_seconds = finite_or_none(candidate_seconds)
-
-    if baseline_seconds  is None or \
-       candidate_seconds is None or \
-       candidate_seconds <= 0:
-        return None
-
-    return baseline_seconds / candidate_seconds

@@ -27,18 +27,6 @@ def extract_open_facilities_candidates(
     ]
 
 
-def compute_solution_cost(
-    distances       : np.ndarray,
-    open_facilities : list[int] ,
-) -> int | None:
-    if not open_facilities:
-        return None
-
-    return int(
-        distances[:, open_facilities].min(axis=1).sum()
-    )
-
-
 def compute_assignments(
     distances       : np.ndarray,
     open_facilities : list[int] ,
