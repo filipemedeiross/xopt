@@ -74,7 +74,7 @@ int main (int argc, char* argv[]) {
             async(
                 launch::async,
                 [memory, &instance, &irandom, i] () {
-                    return tspmed (instance, irandom[i], 2, memory);
+                    return tspmed (instance, irandom[i], 0.5, memory);
                 }
             )
         );
