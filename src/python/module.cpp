@@ -87,7 +87,7 @@ PYBIND11_MODULE (xopt, m) {
         &tspmed ,
         py::arg("instance"),
         py::arg("medoids" ),
-        py::arg("iter_factor") = 2,
+        py::arg("iter_factor") = 2.0,
         py::arg("long_term")
     );
 }

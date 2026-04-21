@@ -1,8 +1,10 @@
+#include <cmath>
 #include <vector>
 #include <random>
 #include <limits>
 #include <memory>
 #include <algorithm>
+#include <stdexcept>
 
 #include "../pmedian/instance.h"
 #include "../pmedian/solution.h"
@@ -17,7 +19,7 @@ constexpr double EPSILON = 1e-9;
 TSResult tspmed (
     const Instance&           instance   ,
     const vector <int>&       medoids    ,
-    int                       iter_factor,
+    double                    iter_factor,
     shared_ptr <SolutionTrie> long_term
 ) {
     int    iter, last;
@@ -30,11 +32,14 @@ TSResult tspmed (
     int p = instance.get_p();
     mt19937 rng (random_device{}());
 
-    int max_iter    = iter_factor * n;
-    int stable_iter = static_cast <int> (0.3 * max_iter);
+    if (iter_factor <= 0.0)
+        throw invalid_argument("iter_factor must be greater than 0.");
+
+    int max_iter    = max(1, static_cast <int> (floor(iter_factor * n)));
+    int stable_iter = max(1, static_cast <int> (floor(0.3  * max_iter)));
 
     int tenure      = static_cast <int> (p / 2);
-    int span_tenure = static_cast <int> (stable_iter / 5);
+    int span_tenure = max(1, static_cast <int> (floor(stable_iter / 5.0)));
 
     vector <int> S      = medoids;
     vector <int> best_S = S;

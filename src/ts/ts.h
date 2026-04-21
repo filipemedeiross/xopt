@@ -20,7 +20,7 @@ struct TSResult {
 
 TSResult tspmed (const Instance&    ,
                  const vector <int>&,
-                 int = 2,
+                 double = 2.0,
                  shared_ptr <SolutionTrie> = nullptr);
 
 #endif
