@@ -26,7 +26,7 @@ ext_modules = [
 
 setup(
     name   ="xopt" ,
-    version="0.1.0",
+    version="0.1.1",
     description="Python bindings for the XOpt tabu search and k-medoids toolkit.",
     ext_modules=ext_modules,
     cmdclass={"build_ext": build_ext},

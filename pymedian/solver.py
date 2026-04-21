@@ -11,7 +11,7 @@ from .types    import Summary, \
                       DetailsFormat
 
 
-def _validate_positive(name: str, value: int) -> None:
+def _validate_positive(name: str, value: int | float) -> None:
     if value <= 0:
         raise ValueError(f"{name} must be greater than 0.")
 
@@ -19,9 +19,9 @@ def _validate_positive(name: str, value: int) -> None:
 def solve_pmedian(
     instance_path: str | Path,
     *,
-    restarts       : int = 10,
-    max_iter       : int = 20,
-    factor         : int = 2 ,
+    restarts       : int   = 10 ,
+    max_iter       : int   = 20 ,
+    factor         : float = 2.0,
     details_format : DetailsFormat = "binary",
 ) -> tuple[Summary, Details]:
 
