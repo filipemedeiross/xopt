@@ -119,6 +119,7 @@ def extract_structure_insights(
     densest_nodes    , densest_density    = densest_subgraph_greedy     (
         adjacency, min_size=max(3, p)
     )
+    k_core_densest_union_nodes = highest_core_nodes.union(densest_nodes)
 
     return {
         'best_facilities'           : best_facilities,
@@ -144,4 +145,9 @@ def extract_structure_insights(
         'densest_subgraph_candidate_count'    : len(densest_nodes)            ,
         'densest_subgraph_candidate_fraction' : len(densest_nodes) / max(1, n),
         'densest_subgraph_best_set_recall'    : len(best_set.intersection(densest_nodes)) / max(1, len(best_set)),
+
+        'k_core_densest_union_nodes'              : k_core_densest_union_nodes,
+        'k_core_densest_union_candidate_count'    : len(k_core_densest_union_nodes)            ,
+        'k_core_densest_union_candidate_fraction' : len(k_core_densest_union_nodes) / max(1, n),
+        'k_core_densest_union_best_set_recall'    : len(best_set.intersection(k_core_densest_union_nodes)) / max(1, len(best_set)),
     }
