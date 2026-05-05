@@ -1,4 +1,4 @@
-# SBPO Experimental Notebooks
+# SBPO EXPERIMENTAL NOTEBOOKS
 
 This directory contains the experimental notebooks and generated artifacts used to study XOPT on OR-Library p-median instances. The notebooks are organized as a connected experimental sequence: first validating the metaheuristic and exact baselines, then extracting structural interpretability signals, and finally testing whether those signals can support reoptimization under perturbed or disrupted scenarios.
 
