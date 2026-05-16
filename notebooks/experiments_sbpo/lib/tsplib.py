@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import sys
 import gzip
 import math
 
@@ -22,6 +23,8 @@ from .explain import densest_subgraph_greedy, extract_highest_k_core_nodes
 
 TSPLIB_PAGE_URL = "https://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/tsp.html"
 USER_AGENT      = "xopt-tsplib-geometric/1.0"
+
+PYMEDIAN_TSPLIB_MAX_COMPLETE_EDGES = 500_000
 
 GEOMETRIC_EDGE_WEIGHT_TYPES = frozenset(
     {
@@ -494,130 +497,145 @@ def assignment_profile(
     return float(best_dist.sum()), assignments, best_dist, second_dist, best_pos
 
 
-def encode_facilities_binary(
-    facilities: tuple[int, ...] | list[int], n: int
-) -> list[int]:
-    values = [0] * int(n)
+def _import_pymedian():
+    try:
+        import pymedian
 
-    for facility in facilities:
-        values[int(facility)] = 1
+        return pymedian
+    except ModuleNotFoundError as exc:
+        if exc.name != "pymedian":
+            raise
+        import_error = exc
 
-    return values
+    for candidate in [ Path.cwd()        ,
+                      *Path.cwd().parents,
+                      *Path(__file__).resolve().parents]:
+        if (candidate / "pymedian").exists():
+            root = str(candidate)
+
+            if root not in sys.path:
+                sys.path.insert(0, root)
+
+            import pymedian
+
+            return pymedian
+
+    raise import_error
 
 
-def _add_solution_to_memory(
-    memory     : list [dict [str, object]],
-    seen       : set  [tuple[int, ...   ]],
-    facilities : tuple[int, ...          ],
-    cost       : float,
-    n          : int  ,
-) -> None:
-    key = tuple(sorted(int(value) for value in facilities))
+def tsplib_pymedian_instance_path(
+    instance    : GeometricInstance,
+    output_path : str | Path | None = None,
+) -> Path:
+    if output_path is not None:
+        return Path(output_path)
 
-    if key in seen:
-        return
+    path = Path(instance.instance_path)
 
-    seen  .add   (key)
-    memory.append(
-        {
-            "cost"       : float(cost),
-            "facilities" : encode_facilities_binary(key, n),
-        }
+    return path.with_name(f"{path.stem}.pmedian_p{int(instance.p)}.txt")
+
+
+def write_tsplib_pymedian_instance(
+    instance    : GeometricInstance,
+    output_path : str | Path | None = None,
+    *,
+    max_complete_edges: int | None = PYMEDIAN_TSPLIB_MAX_COMPLETE_EDGES,
+    overwrite         : bool       = False,
+) -> Path:
+    output_path = tsplib_pymedian_instance_path(instance, output_path)
+
+    raw_path    = Path(instance.instance_path)
+
+    if (
+        output_path.exists() and
+        not overwrite and
+        (not raw_path.exists() or output_path.stat().st_mtime >= raw_path.stat().st_mtime)
+    ):
+        return output_path
+
+    n = len(instance.points)
+    p = max(1, min(int(instance.p), n))
+    m = n * (n - 1) // 2
+
+    if max_complete_edges is not None and m > int(max_complete_edges):
+        raise ValueError(
+            "Solving TSPLIB through pymedian requires a complete OR-Library-style "
+            f"graph with {m} edges for n={n}. Increase max_complete_edges to "
+            "materialize it explicitly, or set it to None."
+        )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with output_path.open("w", encoding="utf-8") as file:
+        file.write(f"{n} {m} {p}\n")
+
+        for facility in range(n):
+            distances = tsplib_distance_to_facility(instance, facility)
+
+            for node in range(facility + 1, n):
+                file.write(f"{facility + 1} {node + 1} {int(distances[node])}\n")
+
+    return output_path
+
+
+def _binary_facilities(values: object) -> tuple[int, ...]:
+    return tuple(
+        np.flatnonzero(np.asarray(values, dtype=np.int8)).astype(int).tolist()
     )
 
 
-def farthest_first_initialization(
-    instance : GeometricInstance  ,
-    p        : int                ,
-    rng      : np.random.Generator,
-) -> tuple[int, ...]:
-    n = len(instance.points  )
-    p = max(1, min(int(p), n))
-
-    facilities = [int(rng.integers(0, n))]
-    nearest    = tsplib_distance_to_facility(instance, facilities[0])
-
-    while len(facilities) < p:
-        candidate = int(np.argmax(nearest))
-
-        if candidate in facilities:
-            remaining = np.setdiff1d(
-                np.arange (n         , dtype=int),
-                np.asarray(facilities, dtype=int),
-            )
-
-            candidate = int(rng.choice(remaining))
-
-        facilities.append(candidate)
-
-        nearest = np.minimum(
-            nearest,
-            tsplib_distance_to_facility(instance, candidate),
-        )
-
-    return tuple(sorted(facilities))
+def _one_based_facilities_from_binary(values: object) -> list[int]:
+    return [
+        int(value) + 1
+        for value in _binary_facilities(values)
+    ]
 
 
-def local_search_tsplib_pmedian(
-    instance : GeometricInstance,
-    initial  : tuple[int, ...  ],
-    *,
-    max_iter     : int,
-    swap_samples : int,
-    rng          : np.random.Generator    ,
-    memory       : list[dict[str, object]],
-    seen         : set[tuple[int, ...]]   ,
-) -> tuple[tuple[int, ...], float]:
-    n          = len (instance.points)
-    facilities = list(initial)
+def _reprice_solution_record(
+    instance: GeometricInstance,
+    record  : dict[str, object],
+    key     : str,
+) -> dict[str, object]:
+    result     = dict(record)
+    facilities = _binary_facilities(result[key])
+    cost, _, _, _, _ = assignment_profile(instance, facilities)
 
-    cost, _, best_dist, second_dist, best_pos = assignment_profile(instance, facilities)
+    result["cost"] = float(cost)
 
-    _add_solution_to_memory(memory, seen, tuple(facilities), cost, n)
+    return result
 
-    all_nodes = np.arange(n, dtype=int)
 
-    for _ in range(max(1, int(max_iter))):
-        closed = np.setdiff1d(
-            all_nodes,
-            np.asarray(facilities, dtype=int),
-            assume_unique=False,
-        )
+def _reprice_pymedian_result(
+    instance: GeometricInstance,
+    summary : dict[str, object],
+    details : dict[str, object],
+) -> tuple[dict[str, object], dict[str, object]]:
+    details = {
+        "long_term_memory" : [_reprice_solution_record(instance, dict(record), "facilities") for record in details["long_term_memory"]],
+        "medoids"          : [_reprice_solution_record(instance, dict(record), "medoids"   ) for record in details["medoids"         ]],
+        "tspmed"           : [_reprice_solution_record(instance, dict(record), "facilities") for record in details["tspmed"          ]],
+    }
 
-        if closed.size == 0:
-            break
+    summary = dict(summary)
 
-        sample_size = min(int(swap_samples), int(closed.size))
-        candidates  = rng.choice(closed, size=sample_size, replace=False)
-        open_pos    = rng.integers(0, len(facilities), size=sample_size )
+    best_medoids = min(details["medoids"], key=lambda record: float(record["cost"]))
+    best_tspmed  = min(details["tspmed" ], key=lambda record: float(record["cost"]))
 
-        best_candidate_delta = 0.0
-        best_candidate_pos   = None
-        best_candidate_node  = None
+    if not details["long_term_memory"]:
+        details["long_term_memory"] = [
+            {
+                "cost"       : float(best_tspmed["cost"      ]),
+                "facilities" : list (best_tspmed["facilities"]),
+            }
+        ]
 
-        for remove_pos, candidate in zip(open_pos.tolist(), candidates.tolist()):
-            candidate_dist = tsplib_distance_to_facility(instance, int(candidate))
+    summary["kmedoids_cost"    ] = float(best_medoids["cost"])
+    summary["tspmed_cost"      ] = float(best_tspmed ["cost"])
+    summary["long_term_mem"    ] = len(details["long_term_memory"])
+    summary["medoids"          ] = _one_based_facilities_from_binary(best_medoids["medoids"   ])
+    summary["tspmed_facilities"] = _one_based_facilities_from_binary(best_tspmed ["facilities"])
 
-            fallback = np.where  (best_pos == remove_pos, second_dist, best_dist)
-            new_dist = np.minimum(fallback, candidate_dist)
-            delta    = float     (new_dist.sum() - cost   )
-
-            if delta < best_candidate_delta:
-                best_candidate_delta = delta
-                best_candidate_pos   = int(remove_pos)
-                best_candidate_node  = int(candidate )
-
-        if best_candidate_pos is None:
-            break
-
-        facilities[best_candidate_pos] = best_candidate_node
-        facilities = sorted(facilities)
-
-        cost, _, best_dist, second_dist, best_pos = assignment_profile(instance, facilities)
-
-        _add_solution_to_memory(memory, seen, tuple(facilities), cost, n)
-
-    return tuple(sorted(facilities)), float(cost)
+    return summary, details
 
 
 def solve_tsplib_geometric_pmedian(
@@ -625,87 +643,43 @@ def solve_tsplib_geometric_pmedian(
     *,
     restarts       : int,
     max_iter       : int,
-    swap_samples   : int,
+    swap_samples   : int | None = None,
+    factor         : float      = 2.0 ,
     details_format : str = "binary",
     seed           : int = 42      ,
+    pmedian_instance_path: str | Path | None = None,
+    max_complete_edges   : int | None = PYMEDIAN_TSPLIB_MAX_COMPLETE_EDGES,
 ) -> tuple[dict[str, object], dict[str, object]]:
     if details_format != "binary":
         raise ValueError("TSPLIB geometric analysis uses binary long-term-memory records.")
 
-    rng = np.random.default_rng(seed)
+    _ = seed
+    _ = swap_samples
 
-    n = len(instance.points)
-    p = max(1, min(int(instance.p), n))
+    solver_path = write_tsplib_pymedian_instance(
+        instance             ,
+        pmedian_instance_path,
+        max_complete_edges=max_complete_edges,
+    )
 
-    memory: list[dict[str, object]] = []
-    seen  : set [tuple[int, ...  ]] = set()
+    pymedian = _import_pymedian()
 
-    medoids_details = []
-    tspmed_details  = []
+    summary, details = pymedian.solve_pmedian(
+        solver_path,
+        restarts      =restarts      ,
+        max_iter      =max_iter      ,
+        factor        =factor        ,
+        details_format=details_format,
+    )
 
-    best_initial_cost = float("inf")
-    best_cost         = float("inf")
-    best_initial      = None
-    best_facilities   = None
+    summary, details = _reprice_pymedian_result(
+        instance,
+        dict(summary),
+        dict(details),
+    )
 
-    for restart in range(max(1, int(restarts))):
-        initial                  = farthest_first_initialization(instance, p, rng )
-        initial_cost, _, _, _, _ = assignment_profile           (instance, initial)
-
-        medoids_details.append(
-            {
-                "restart" : restart            ,
-                "cost"    : float(initial_cost),
-                "medoids" : encode_facilities_binary(initial, n),
-            }
-        )
-
-        if initial_cost < best_initial_cost:
-            best_initial_cost = float(initial_cost)
-            best_initial      = initial
-
-        facilities, cost = local_search_tsplib_pmedian(
-            instance,
-            initial ,
-            max_iter    =max_iter    ,
-            swap_samples=swap_samples,
-            rng         =rng   ,
-            memory      =memory,
-            seen        =seen  ,
-        )
-
-        tspmed_details.append(
-            {
-                "restart"    : restart    ,
-                "cost"       : float(cost),
-                "facilities" : encode_facilities_binary(facilities, n),
-            }
-        )
-
-        if cost < best_cost:
-            best_cost       = float(cost)
-            best_facilities = facilities
-
-    if best_initial is None or best_facilities is None:
-        raise RuntimeError("TSPLIB p-median solver did not produce a solution.")
-
-    summary = {
-        "instance" : str(instance.instance_path),
-        "n"        : n,
-        "p"        : p,
-
-        "kmedoids_cost"     : best_initial_cost,
-        "tspmed_cost"       : best_cost        ,
-        "long_term_mem"     : len(memory)      ,
-        "medoids"           : [int(value) + 1 for value in best_initial   ],
-        "tspmed_facilities" : [int(value) + 1 for value in best_facilities],
-    }
-
-    details = {
-        "long_term_memory" : memory         ,
-        "medoids"          : medoids_details,
-        "tspmed"           : tspmed_details ,
-    }
+    summary["instance"]          = str(instance.instance_path)
+    summary["pymedian_instance"] = str(solver_path)
 
     return summary, details
 
