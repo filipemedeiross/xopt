@@ -56,6 +56,21 @@ from .utils import (
     format_groups           ,
 )
 
+from .tsplib import (
+    GEOMETRIC_EDGE_WEIGHT_TYPES,
+    TSPLIBInstanceSpec         ,
+    GeometricInstance          ,
+
+    read_tsplib_geometric_tsp       ,
+    run_tsplib_instance_analysis    ,
+    section_slug                    ,
+    spec_from_manifest_row          ,
+    spec_to_manifest_row            ,
+    solution_table_for_result       ,
+    structure_table_for_result      ,
+    structure_nodes_table_for_result,
+)
+
 
 __all__ = [
     "all_pairs_shortest_paths"          ,
@@ -94,6 +109,17 @@ __all__ = [
     "parse_optional_int_env"            ,
     "read_instance_metadata"            ,
     "read_orlibrary_graph"              ,
+    "GEOMETRIC_EDGE_WEIGHT_TYPES"       ,
+    "GeometricInstance"                 ,
+    "TSPLIBInstanceSpec"                ,
+    "read_tsplib_geometric_tsp"         ,
+    "run_tsplib_instance_analysis"      ,
+    "section_slug"                      ,
+    "solution_table_for_result"         ,
+    "spec_from_manifest_row"            ,
+    "spec_to_manifest_row"              ,
+    "structure_nodes_table_for_result"  ,
+    "structure_table_for_result"        ,
     "total_edge_count"                  ,
     "total_edge_weight"                 ,
 ]
