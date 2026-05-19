@@ -18,7 +18,9 @@ import networkx as nx
 
 from .graph   import build_top_ltm
 from .maxcut  import max_p_cut_local_search
-from .explain import densest_subgraph_greedy, extract_highest_k_core_nodes
+from .explain import densest_subgraph_greedy     , \
+                     extract_highest_k_core_nodes
+from .ltm     import complete_long_term_memory_with_swap_trajectories
 
 
 TSPLIB_PAGE_URL = "https://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/tsp.html"
@@ -724,6 +726,40 @@ def solve_geometric_instance(
     }
 
 
+def refresh_result_from_long_term_memory(result: dict[str, object]) -> None:
+    instance = result["instance"]
+    details  = result["details" ]
+
+    long_term_memory = details["long_term_memory"]
+
+    if not long_term_memory:
+        return
+
+    best_record = min(
+        long_term_memory,
+        key=lambda record: float(record["cost"]),
+    )
+    selected = _binary_facilities(best_record["facilities"])
+
+    result["summary"                 ] = dict(result["summary"])
+    result["summary"]["long_term_mem"] = len (long_term_memory )
+
+    current_cost = float(result["summary"].get("tspmed_cost", np.inf))
+    best_cost    = float(best_record["cost"])
+
+    if best_cost > current_cost:
+        return
+
+    result["summary"]["tspmed_cost"      ] = best_cost
+    result["summary"]["tspmed_facilities"] = [
+        int(node) + 1
+        for node in selected
+    ]
+
+    result["selected"   ] = selected
+    result["assignments"] = nearest_selected_nodes(instance, selected)
+
+
 def active_cooccurrence_matrix(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     active_nodes = np.flatnonzero(matrix.sum(axis=0) > 0).astype(int)
 
@@ -885,16 +921,30 @@ def extract_geometric_structures(
 
 
 def run_tsplib_instance_analysis(
-    spec               : TSPLIBInstanceSpec,
+    spec : TSPLIBInstanceSpec,
     *,
-    solver_params      : dict[str, object],
-    top_fraction       : float = 1.0 ,
-    max_cut_restarts   : int   = 40  ,
-    max_cut_max_iter   : int   = 2000,
-    seed               : int   = 42  ,
+    solver_params            : dict[str, object],
+    top_fraction             : float = 1.0      ,
+    max_cut_restarts         : int   = 40       ,
+    max_cut_max_iter         : int   = 2000     ,
+    seed                     : int   = 42       ,
+    complete_long_term_memory: bool = False     ,
 ) -> dict[str, object]:
     instance = load_tsplib_instance    (spec)
     result   = solve_geometric_instance(instance, solver_params)
+
+    if complete_long_term_memory:
+        swap_connectivity = complete_long_term_memory_with_swap_trajectories(
+            instance,
+            result["details"]["long_term_memory"],
+            cost_fn=lambda solution: assignment_profile(instance, solution)[0],
+        )
+
+        result["details"                    ] = dict(result["details"])
+        result["details"]["long_term_memory"] = swap_connectivity["long_term_memory"]
+        result["swap_connectivity"          ] = swap_connectivity
+
+        refresh_result_from_long_term_memory(result)
 
     result["structures"] = extract_geometric_structures(
         result,
