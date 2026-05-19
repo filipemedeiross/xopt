@@ -817,10 +817,66 @@ def plot_instance_geometric_summary(
         show_map_background=show_map_background,
     )
 
-    axes[0].set_title("Melhor solucao")
-    axes[1].set_title("Max-k-cut")
+    axes[0].set_title("Melhor solução")
+    axes[1].set_title("Max-k-cut"     )
     axes[2].set_title("Subgrafo Denso")
-    axes[3].set_title("Numero K")
+    axes[3].set_title("Número K"      )
+
+    if not display_output:
+        return fig
+
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format="png", dpi=dpi, bbox_inches="tight")
+    display(Image(data=buffer.getvalue()))
+    plt.close(fig)
+
+    return None
+
+
+def plot_instance_geometric_summary2(
+    result: dict[str, object],
+    *,
+    figsize             : tuple[float, float] = (10, 18),
+    show_map_background : bool | None = None,
+    seed                : int         = 42,
+    display_output      : bool        = True,
+    dpi                 : int         = 160,
+):
+    fig, axes = plt.subplots(
+        nrows=2,
+        ncols=2,
+        figsize           =figsize,
+        constrained_layout=True   ,
+    )
+
+    plot_solution_map(
+        result,
+        ax=axes[0, 0],
+        show_map_background=show_map_background,
+        seed=seed,
+    )
+    plot_max_k_cut_clusters(
+        result,
+        ax=axes[0, 1],
+        show_map_background=show_map_background,
+        seed=seed,
+        group_colors=max_k_cut_color_by_selected_facility(result),
+    )
+    plot_densest_subgraph_map(
+        result,
+        ax=axes[1, 0],
+        show_map_background=show_map_background,
+    )
+    plot_k_number_heatmap(
+        result,
+        ax=axes[1, 1],
+        show_map_background=show_map_background,
+    )
+
+    axes[0, 0].set_title("Melhor solução")
+    axes[0, 1].set_title("Max-k-cut"     )
+    axes[1, 0].set_title("Subgrafo Denso")
+    axes[1, 1].set_title("Número K"      )
 
     if not display_output:
         return fig
