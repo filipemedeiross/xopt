@@ -933,10 +933,19 @@ def run_tsplib_instance_analysis(
     instance = load_tsplib_instance    (spec)
     result   = solve_geometric_instance(instance, solver_params)
 
+    structure_top_fraction = top_fraction
+
     if complete_long_term_memory:
+        source_long_term_memory = result["details"]["long_term_memory"]
+
+        top_ltm, _, _ = build_top_ltm(
+            source_long_term_memory,
+            top_fraction           ,
+        )
+
         swap_connectivity = complete_long_term_memory_with_swap_trajectories(
             instance,
-            result["details"]["long_term_memory"],
+            top_ltm ,
             cost_fn=lambda solution: assignment_profile(instance, solution)[0],
         )
 
@@ -944,14 +953,22 @@ def run_tsplib_instance_analysis(
         result["details"]["long_term_memory"] = swap_connectivity["long_term_memory"]
         result["swap_connectivity"          ] = swap_connectivity
 
+        result["swap_connectivity"]["source_long_term_memory_count"] = len(
+            source_long_term_memory
+        )
+        result["swap_connectivity"]["top_fraction"      ] = float(top_fraction)
+        result["swap_connectivity"]["top_solution_count"] = len  (top_ltm     )
+
         refresh_result_from_long_term_memory(result)
+
+        structure_top_fraction = 1.0
 
     result["structures"] = extract_geometric_structures(
         result,
-        top_fraction    =top_fraction    ,
-        max_cut_restarts=max_cut_restarts,
-        max_cut_max_iter=max_cut_max_iter,
-        seed            =seed            ,
+        top_fraction    =structure_top_fraction,
+        max_cut_restarts=max_cut_restarts      ,
+        max_cut_max_iter=max_cut_max_iter      ,
+        seed            =seed                  ,
     )
 
     return result
